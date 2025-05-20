@@ -111,5 +111,5 @@ jobs:
           accesskey: ${{ secrets.MINIO_ACCESS_KEY }}
           secretkey: ${{ secrets.MINIO_SECRET_KEY }}
           bucketname: ${{ secrets.MINIO_BUCKET }}
-          source: './dist/*'
+          source: './dist/'
           dest: '/dist/'
