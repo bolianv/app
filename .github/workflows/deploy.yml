@@ -19,17 +19,17 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: ubuntu-latest
-          #   platform: linux
-          #   build_cmd: flutter build apk --release
-          #   artifact_path: myapp/build/app/outputs/flutter-apk/app-release.apk
-          #   artifact_ext: apk
+          - os: ubuntu-latest
+            platform: linux
+            build_cmd: flutter build apk --release
+            artifact_path: myapp/build/app/outputs/flutter-apk/app-release.apk
+            artifact_ext: apk
 
-          # - os: macos-latest
-          #   platform: darwin
-          #   build_cmd: flutter build macos --release
-          #   artifact_path: myapp/build/macos/Build/Products/Release/myapp.app
-          #   artifact_ext: zip
+          - os: macos-latest
+            platform: darwin
+            build_cmd: flutter build macos --release
+            artifact_path: myapp/build/macos/Build/Products/Release/myapp.app
+            artifact_ext: zip
 
           - os: windows-latest
             platform: windows
@@ -139,7 +139,7 @@ jobs:
         run: |
           if ($IsWindows) {
             Push-Location dist
-            ./mc.exe cp --recursive "./" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
+            ../mc.exe cp --recursive "./" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
             Pop-Location
           } else {
             cd dist
