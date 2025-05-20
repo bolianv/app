@@ -145,6 +145,14 @@ jobs:
           # 清理临时目录
           Remove-Item -Path $tempDir -Recurse -Force
 
+          Write-Host "temp_release"
+          gci temp_release
+          Write-Host "dist"
+          gci dist
+
+          Write-Host "myapp/build/windows"
+          gci myapp/build/windows
+
       # 上传到 MinIO
       - name: Upload to MinIO
         shell: pwsh
