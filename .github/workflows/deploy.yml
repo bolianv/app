@@ -19,23 +19,23 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux
-            build_cmd: flutter build apk --release
-            artifact_path: myapp/build/app/outputs/flutter-apk/app-release.apk
-            artifact_ext: apk
+          # - os: ubuntu-latest
+          #   platform: linux
+          #   build_cmd: flutter build apk --release
+          #   artifact_path: myapp/build/app/outputs/flutter-apk/app-release.apk
+          #   artifact_ext: apk
 
-          - os: macos-latest
-            platform: darwin
-            build_cmd: flutter build macos --release
-            artifact_path: myapp/build/macos/Build/Products/Release/myapp.app
-            artifact_ext: zip
+          # - os: macos-latest
+          #   platform: darwin
+          #   build_cmd: flutter build macos --release
+          #   artifact_path: myapp/build/macos/Build/Products/Release/myapp.app
+          #   artifact_ext: zip
 
           - os: windows-latest
             platform: windows
             build_cmd: flutter build windows --release
-            artifact_path: myapp/build/windows/x64/runner/Release/myapp.exe
-            artifact_ext: exe
+            artifact_path: myapp/build/windows/x64/runner/Release
+            artifact_ext: zip
 
     steps:
       - name: Setup MinIO client
@@ -129,9 +129,21 @@ jobs:
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $os = "${{ matrix.platform }}"
           $ext = "${{ matrix.artifact_ext }}"
-          $fileName = "${os}_${timestamp}.${ext}"
+          $fileName = "${os}_${timestamp}.${{ matrix.artifact_ext }}"
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          Copy-Item "${{ matrix.artifact_path }}" "dist\$fileName"
+          
+          # 创建临时目录
+          $tempDir = "temp_release"
+          New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+          
+          # 复制所有必要的文件
+          Copy-Item -Path "${{ matrix.artifact_path }}/*" -Destination $tempDir -Recurse
+          
+          # 创建zip文件
+          Compress-Archive -Path "$tempDir/*" -DestinationPath "dist/$fileName" -Force
+          
+          # 清理临时目录
+          Remove-Item -Path $tempDir -Recurse -Force
 
       # 上传到 MinIO
       - name: Upload to MinIO
