@@ -138,7 +138,9 @@ jobs:
         shell: pwsh
         run: |
           if ($IsWindows) {
-            mc.exe cp --recursive "dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+            Push-Location dist
+            ../mc.exe cp "./" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
           } else {
-            mc cp --recursive dist myminio/${{ secrets.MINIO_BUCKET }}/
+            cd dist
+            mc cp --recursive ./ myminio/${{ secrets.MINIO_BUCKET }}/dist/
           }
