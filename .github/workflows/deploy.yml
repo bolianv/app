@@ -43,18 +43,34 @@ jobs:
 
       # 配置 MinIO 客户端
       - name: Configure MinIO client
+        shell: pwsh
         run: |
-          mc alias set myminio ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_ACCESS_KEY }} ${{ secrets.MINIO_SECRET_KEY }}
+          if ($IsWindows) {
+            $env:MC_HOST_myminio = "https://${{ secrets.MINIO_ACCESS_KEY }}:${{ secrets.MINIO_SECRET_KEY }}@${{ secrets.MINIO_ENDPOINT }}"
+          } else {
+            mc alias set myminio ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_ACCESS_KEY }} ${{ secrets.MINIO_SECRET_KEY }}
+          }
 
       # 从 MinIO 下载代码
       - name: Download code from MinIO
+        shell: pwsh
         run: |
-          mc cp myminio/${{ secrets.MINIO_BUCKET }}/code.tar.gz ./
-          gci .
-          pwd
+          if ($IsWindows) {
+            mc cp "myminio/${{ secrets.MINIO_BUCKET }}/code.tar.gz" "./"
+          } else {
+            mc cp myminio/${{ secrets.MINIO_BUCKET }}/code.tar.gz ./
+          }
+          Get-ChildItem
+          Get-Location
 
       # 解压代码
       - name: Extract code
+        shell: pwsh
         run: |
-          tar -xzf code.tar.gz
-          rm code.tar.gz
+          if ($IsWindows) {
+            tar -xf code.tar.gz
+            Remove-Item code.tar.gz
+          } else {
+            tar -xzf code.tar.gz
+            rm code.tar.gz
+          }
