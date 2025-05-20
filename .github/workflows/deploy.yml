@@ -46,65 +46,65 @@ jobs:
         run: |
           mc alias set myminio ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_ACCESS_KEY }} ${{ secrets.MINIO_SECRET_KEY }}
 
-      # # 从 MinIO 下载代码
-      # - name: Download code from MinIO
-      #   run: |
-      #     mc cp myminio/${{ secrets.MINIO_BUCKET }}/code.tar.gz ./
+      # 从 MinIO 下载代码
+      - name: Download code from MinIO
+        run: |
+          mc cp myminio/${{ secrets.MINIO_BUCKET }}/code.tar.gz ./
 
-      # # 解压代码
-      # - name: Extract code
-      #   run: |
-      #     tar -xzf code.tar.gz
-      #     rm code.tar.gz
+      # 解压代码
+      - name: Extract code
+        run: |
+          tar -xzf code.tar.gz
+          rm code.tar.gz
 
-      # - name: Set up Flutter
-      #   uses: subosito/flutter-action@v2
-      #   with:
-      #     flutter-version: '3.29.3'
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.3'
 
-      # - name: Flutter pub get
-      #   run: flutter pub get
-      #   working-directory: ./myapp
+      - name: Flutter pub get
+        run: flutter pub get
+        working-directory: ./myapp
 
-      # - name: Build app
-      #   run: ${{ matrix.build_cmd }}
-      #   working-directory: ./myapp
+      - name: Build app
+        run: ${{ matrix.build_cmd }}
+        working-directory: ./myapp
 
-      # # 非 Windows: 处理 artifact
-      # - name: Prepare artifact (Unix/macOS)
-      #   if: runner.os != 'Windows'
-      #   shell: bash
-      #   run: |
-      #     mkdir -p dist
-      #     TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-      #     OS_NAME=${{ matrix.platform }}
-      #     FILE_NAME="${OS_NAME}_${TIMESTAMP}.${{ matrix.artifact_ext }}"
+      # 非 Windows: 处理 artifact
+      - name: Prepare artifact (Unix/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist
+          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          OS_NAME=${{ matrix.platform }}
+          FILE_NAME="${OS_NAME}_${TIMESTAMP}.${{ matrix.artifact_ext }}"
 
-      #     if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
-      #       cd "${{ matrix.artifact_path}}/.."
-      #       zip -r "../../../../../../dist/$FILE_NAME" "myapp.app"
-      #     else
-      #       cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
-      #     fi
+          if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
+            cd "${{ matrix.artifact_path}}/.."
+            zip -r "../../../../../../dist/$FILE_NAME" "myapp.app"
+          else
+            cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
+          fi
 
-      # # Windows: 处理 artifact
-      # - name: Prepare artifact (Windows)
-      #   if: runner.os == 'Windows'
-      #   shell: pwsh
-      #   run: |
-      #     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-      #     $os = "${{ matrix.platform }}"
-      #     $ext = "${{ matrix.artifact_ext }}"
-      #     $fileName = "${os}_${timestamp}.${ext}"
-      #     New-Item -ItemType Directory -Force -Path dist | Out-Null
-      #     Copy-Item "${{ matrix.artifact_path }}" "dist\$fileName"
+      # Windows: 处理 artifact
+      - name: Prepare artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+          $os = "${{ matrix.platform }}"
+          $ext = "${{ matrix.artifact_ext }}"
+          $fileName = "${os}_${timestamp}.${ext}"
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item "${{ matrix.artifact_path }}" "dist\$fileName"
 
       # 准备测试文件
       - name: test
         run: |
           mkdir -p dist
           touch dist/test.txt
-          echo "test" > dist/test.txt
+          date > dist/test.txt
 
       # 上传到 MinIO
       - name: Upload to MinIO
