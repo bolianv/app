@@ -140,6 +140,5 @@ jobs:
           if ($IsWindows) {
             ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
           } else {
-            cd dist
             mc cp --recursive ./dist myminio/${{ secrets.MINIO_BUCKET }}/
           }
