@@ -46,7 +46,11 @@ jobs:
         shell: pwsh
         run: |
           if ($IsWindows) {
+            Write-Host "Configuring MinIO client for Windows..."
             $env:MC_HOST_myminio = "https://${{ secrets.MINIO_ACCESS_KEY }}:${{ secrets.MINIO_SECRET_KEY }}@${{ secrets.MINIO_ENDPOINT }}"
+            Write-Host "MC_HOST_myminio environment variable set"
+            mc config host add myminio ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_ACCESS_KEY }} ${{ secrets.MINIO_SECRET_KEY }}
+            Write-Host "MinIO configuration completed"
           } else {
             mc alias set myminio ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_ACCESS_KEY }} ${{ secrets.MINIO_SECRET_KEY }}
           }
@@ -56,20 +60,48 @@ jobs:
         shell: pwsh
         run: |
           if ($IsWindows) {
-            mc cp "myminio/${{ secrets.MINIO_BUCKET }}/code.tar.gz" "./"
+            Write-Host "Current directory: $(Get-Location)"
+            Write-Host "Listing MinIO bucket contents:"
+            mc ls "myminio/${{ secrets.MINIO_BUCKET }}/"
+            
+            Write-Host "Attempting to download code.tar.gz..."
+            $downloadPath = Join-Path (Get-Location) "code.tar.gz"
+            Write-Host "Download path: $downloadPath"
+            
+            try {
+              mc cp "myminio/${{ secrets.MINIO_BUCKET }}/code.tar.gz" "$downloadPath"
+              if (Test-Path $downloadPath) {
+                Write-Host "File downloaded successfully"
+                Get-Item $downloadPath | Select-Object Length, LastWriteTime
+              } else {
+                Write-Host "File not found after download attempt"
+                exit 1
+              }
+            } catch {
+              Write-Host "Error downloading file: $_"
+              exit 1
+            }
           } else {
             mc cp myminio/${{ secrets.MINIO_BUCKET }}/code.tar.gz ./
           }
+          
+          Write-Host "Current directory contents:"
           Get-ChildItem
-          Get-Location
 
       # 解压代码
       - name: Extract code
         shell: pwsh
         run: |
           if ($IsWindows) {
-            tar -xf code.tar.gz
-            Remove-Item code.tar.gz
+            Write-Host "Extracting code.tar.gz..."
+            if (Test-Path "code.tar.gz") {
+              tar -xf code.tar.gz
+              Remove-Item code.tar.gz
+              Write-Host "Extraction completed"
+            } else {
+              Write-Host "code.tar.gz not found"
+              exit 1
+            }
           } else {
             tar -xzf code.tar.gz
             rm code.tar.gz
