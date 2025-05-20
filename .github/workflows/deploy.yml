@@ -143,14 +143,14 @@ jobs:
           Compress-Archive -Path "$tempDir/*" -DestinationPath "dist/$fileName" -Force
           
           # 清理临时目录
-          Remove-Item -Path $tempDir -Recurse -Force
+          #Remove-Item -Path $tempDir -Recurse -Force
 
-          Write-Host "temp_release"
+          Write-Output "temp_release"
           gci temp_release
-          Write-Host "dist"
+          Write-Output "dist"
           gci dist
 
-          Write-Host "myapp/build/windows"
+          Write-Output "myapp/build/windows"
           gci myapp/build/windows
 
       # 上传到 MinIO
