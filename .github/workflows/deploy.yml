@@ -1,0 +1,95 @@
+name: Build Apps
+
+on:
+  push:
+    branches:
+      - main
+
+permissions: write-all
+
+env:
+  MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
+  MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+  MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+  MINIO_BUCKET: ${{ secrets.MINIO_BUCKET }}
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            build_cmd: flutter build apk --release
+            artifact_path: myapp/build/app/outputs/flutter-apk/app-release.apk
+            artifact_ext: apk
+
+          - os: macos-latest
+            platform: darwin
+            build_cmd: flutter build macos --release
+            artifact_path: myapp/build/macos/Build/Products/Release/myapp.app
+            artifact_ext: zip
+
+          - os: windows-latest
+            platform: windows
+            build_cmd: flutter build windows --release
+            artifact_path: myapp/build/windows/x64/runner/Release/myapp.exe
+            artifact_ext: exe
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.3'
+
+      - name: Flutter pub get
+        run: flutter pub get
+        working-directory: ./myapp
+
+      - name: Build app
+        run: ${{ matrix.build_cmd }}
+        working-directory: ./myapp
+
+      # 非 Windows: 处理 artifact
+      - name: Prepare artifact (Unix/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist
+          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          OS_NAME=${{ matrix.platform }}
+          FILE_NAME="${OS_NAME}_${TIMESTAMP}.${{ matrix.artifact_ext }}"
+
+          if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
+            cd "${{ matrix.artifact_path}}/.."
+            zip -r "../../../../../../dist/$FILE_NAME" "myapp.app"
+          else
+            cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
+          fi
+
+      # Windows: 处理 artifact
+      - name: Prepare artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+          $os = "${{ matrix.platform }}"
+          $ext = "${{ matrix.artifact_ext }}"
+          $fileName = "${os}_${timestamp}.${ext}"
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item "${{ matrix.artifact_path }}" "dist\$fileName"
+
+      # 上传到 MinIO
+      - name: Upload to MinIO
+        uses: lovellfelix/minio-deploy-action@v1
+        with:
+          endpoint: ${{ secrets.MINIO_ENDPOINT }}
+          access_key: ${{ secrets.MINIO_ACCESS_KEY }}
+          secret_key: ${{ secrets.MINIO_SECRET_KEY }}
+          bucket: ${{ secrets.MINIO_BUCKET }}
+          source_dir: 'dist'
+          target_dir: 'dist'
