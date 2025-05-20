@@ -25,17 +25,17 @@ jobs:
             artifact_path: myapp/build/app/outputs/flutter-apk/app-release.apk
             artifact_ext: apk
 
-          - os: macos-latest
-            platform: darwin
-            build_cmd: flutter build macos --release
-            artifact_path: myapp/build/macos/Build/Products/Release/myapp.app
-            artifact_ext: zip
+          # - os: macos-latest
+          #   platform: darwin
+          #   build_cmd: flutter build macos --release
+          #   artifact_path: myapp/build/macos/Build/Products/Release/myapp.app
+          #   artifact_ext: zip
 
-          - os: windows-latest
-            platform: windows
-            build_cmd: flutter build windows --release
-            artifact_path: myapp/build/windows/x64/runner/Release/myapp.exe
-            artifact_ext: exe
+          # - os: windows-latest
+          #   platform: windows
+          #   build_cmd: flutter build windows --release
+          #   artifact_path: myapp/build/windows/x64/runner/Release/myapp.exe
+          #   artifact_ext: exe
 
     steps:
       - name: Set up Flutter
