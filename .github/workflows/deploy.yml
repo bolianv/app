@@ -130,9 +130,9 @@ jobs:
           mkdir -p test
           "123" | Out-File -FilePath "test/test3.txt"
           #Compress-Archive -Path "test/*" -DestinationPath "dist\a.zip" -Force
-          tar -zcvf testwindows.tar.gz dist
-          ls dist
-          ./mc.exe mirror --debug ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/dist"
+          #tar -zcvf testwindows.tar.gz dist
+          #ls dist
+          ./mc.exe cp --debug --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist"
           
 
 
