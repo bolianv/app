@@ -106,13 +106,10 @@ jobs:
       #   working-directory: ./myapp
 
       # 非 Windows: 处理 artifact
-      - name: Prepare artifact (Unix/macOS)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          mkdir -p dist
-          touch dist/test.txt
-          ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+      # - name: Prepare artifact (Unix/macOS)
+      #   if: runner.os != 'Windows'
+      #   shell: bash
+      #   run: |
       #     TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
       #     OS_NAME=${{ matrix.platform }}
       #     FILE_NAME="${OS_NAME}_${TIMESTAMP}.${{ matrix.artifact_ext }}"
@@ -124,23 +121,27 @@ jobs:
       #       cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
       #     fi
 
-      # # Windows: 处理 artifact
-      # - name: Prepare artifact (Windows)
-      #   if: runner.os == 'Windows'
-      #   shell: pwsh
-      #   run: |
-      #     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-      #     $os = "${{ matrix.platform }}"
-      #     $ext = "${{ matrix.artifact_ext }}"
-      #     $fileName = "${os}_${timestamp}.${ext}"
-      #     New-Item -ItemType Directory -Force -Path dist | Out-Null
-      #     # 创建zip文件
-      #     Compress-Archive -Path "myapp/build/windows/*" -DestinationPath "dist/1_$fileName" -Force
-      #     Compress-Archive -Path "${{ matrix.artifact_path }}/*" -DestinationPath "dist/2_$fileName" -Force
+      # Windows: 处理 artifact
+      - name: Prepare artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          mkdir -p dist
+          touch dist/test.txt
+          ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+
+          # $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+          # $os = "${{ matrix.platform }}"
+          # $ext = "${{ matrix.artifact_ext }}"
+          # $fileName = "${os}_${timestamp}.${ext}"
+          # New-Item -ItemType Directory -Force -Path dist | Out-Null
+          # # 创建zip文件
+          # Compress-Archive -Path "myapp/build/windows/*" -DestinationPath "dist/1_$fileName" -Force
+          # Compress-Archive -Path "${{ matrix.artifact_path }}/*" -DestinationPath "dist/2_$fileName" -Force
           
-      #     gci dist
-      #     gci myapp/build/windows
-      #     gci ${{ matrix.artifact_path }}
+          gci dist
+          gci myapp/build/windows
+          gci ${{ matrix.artifact_path }}
 
       # # 上传到 MinIO
       # - name: Upload to MinIO
