@@ -129,29 +129,15 @@ jobs:
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $os = "${{ matrix.platform }}"
           $ext = "${{ matrix.artifact_ext }}"
-          $fileName = "${os}_${timestamp}.${{ matrix.artifact_ext }}"
+          $fileName = "${os}_${timestamp}.${ext}"
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          
-          # 创建临时目录
-          $tempDir = "temp_release"
-          New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
-          
-          # 复制所有必要的文件
-          Copy-Item -Path "${{ matrix.artifact_path }}/*" -Destination $tempDir -Recurse
-          
           # 创建zip文件
-          Compress-Archive -Path "$tempDir/*" -DestinationPath "dist/$fileName" -Force
+          Compress-Archive -Path "myapp/build/windows/*" -DestinationPath "dist/1_$fileName" -Force
+          Compress-Archive -Path "${{ matrix.artifact_path }}/*" -DestinationPath "dist/2_$fileName" -Force
           
-          # 清理临时目录
-          #Remove-Item -Path $tempDir -Recurse -Force
-
-          Write-Output "temp_release"
-          gci temp_release
-          Write-Output "dist"
           gci dist
-
-          Write-Output "myapp/build/windows"
           gci myapp/build/windows
+          gci ${{ matrix.artifact_path }}
 
       # 上传到 MinIO
       - name: Upload to MinIO
