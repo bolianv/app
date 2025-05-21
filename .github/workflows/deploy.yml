@@ -131,9 +131,10 @@ jobs:
           # ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
 
 
-          echo 123>dist/test2.txt
+          
           gci dist/
-          dir dist/test2.txt
+          "123" | Out-File -FilePath "dist/test2.txt"
+          
           ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
           
 
@@ -150,12 +151,12 @@ jobs:
           # } catch {
           #   $_
           # }
-          # Remove-Item -Path "dist" -Recurse -Force
-          # mkdir -p dist
-          # echo 123>dist/test3.txt
-          # ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
-          # pwd
-          # ls dist
+          Remove-Item -Path "dist" -Recurse -Force
+          mkdir -p dist
+          "123" | Out-File -FilePath "dist/test3.txt"
+          ./mc.exe cp  --debug --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+          pwd
+          ls dist
 
       # # 上传到 MinIO
       # - name: Upload to MinIO
