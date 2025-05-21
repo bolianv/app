@@ -126,7 +126,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # mkdir -p dist
+          mkdir -p dist
           # touch dist/test.txt
           # ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
 
