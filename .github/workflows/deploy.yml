@@ -68,7 +68,7 @@ jobs:
               ./mc.exe cp "myminio/${{ secrets.MINIO_BUCKET }}/code.tar.gz" "./code.tar.gz"
               if (-not (Test-Path "code.tar.gz")) { exit 1 }
             } catch {
-              Write-Host "Error downloading file: $_"
+              $_
               exit 1
             }
           } else {
@@ -84,6 +84,7 @@ jobs:
               tar -xf code.tar.gz
               Remove-Item code.tar.gz
             } else {
+              $_
               exit 1
             }
           } else {
@@ -143,10 +144,32 @@ jobs:
       - name: Upload to MinIO
         shell: pwsh
         run: |
-          pwd
-          gci dist
           if ($IsWindows) {
-            ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+            Get-ChildItem -Path "dist" -Recurse
+
+            try {
+              ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+            } catch {
+              $_
+            }
+
+            try {
+              Push-Location dist
+              Get-ChildItem
+              ../mc.exe cp . "myminio/${{ secrets.MINIO_BUCKET }}/"
+              Pop-Location
+            } catch {
+              $_
+              Pop-Location
+            }
+
+            try {
+              Get-ChildItem -Path "dist" | ForEach-Object {
+                ./mc.exe cp $_.FullName "myminio/${{ secrets.MINIO_BUCKET }}/$($_.Name)"
+              }
+            } catch {
+              $_
+            }
           } else {
             mc cp --recursive ./dist myminio/${{ secrets.MINIO_BUCKET }}/
           }
