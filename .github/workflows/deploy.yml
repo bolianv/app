@@ -132,7 +132,7 @@ jobs:
 
 
           echo 123>dist/test2.txt
-          ls dist
+          ls dist/
           dir dist/test2.txt
           ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
           
