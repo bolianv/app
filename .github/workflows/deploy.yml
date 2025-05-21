@@ -131,8 +131,8 @@ jobs:
           ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
 
 
-          echo 123>dist/test2.txt
-          dir dist\test2.txt
+          echo 123>./dist/test2.txt
+          dir./dist/test2.txt
           ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
           
 
