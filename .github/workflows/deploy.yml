@@ -133,7 +133,7 @@ jobs:
           # tar -zcvf .\dist\testwindows.tar.gz test
           # ./mc.exe cp --debug --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
           
-
+          mkdir -p dist
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $os = "${{ matrix.platform }}"
           $ext = "${{ matrix.artifact_ext }}"
