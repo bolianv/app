@@ -128,7 +128,6 @@ jobs:
         run: |
           mkdir -p dist
           touch dist/test.txt
-          ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
 
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $os = "${{ matrix.platform }}"
@@ -137,43 +136,43 @@ jobs:
           # 创建zip文件
           Compress-Archive -Path "myapp/build/windows/*" -DestinationPath "dist/1_$fileName" -Force
           Compress-Archive -Path "${{ matrix.artifact_path }}/*" -DestinationPath "dist/2_$fileName" -Force
-          
+          ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
           pwd
           ls dist
           ls myapp/build/windows
           ls ${{ matrix.artifact_path }}
 
-      # 上传到 MinIO
-      - name: Upload to MinIO
-        shell: pwsh
-        run: |
-          if ($IsWindows) {
-            pwd
-            ls dist
+      # # 上传到 MinIO
+      # - name: Upload to MinIO
+      #   shell: pwsh
+      #   run: |
+      #     if ($IsWindows) {
+      #       pwd
+      #       ls dist
 
-            try {
-              ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
-            } catch {
-              $_
-            }
+      #       try {
+      #         ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+      #       } catch {
+      #         $_
+      #       }
 
-            try {
-              Push-Location dist
-              Get-ChildItem
-              ../mc.exe cp . "myminio/${{ secrets.MINIO_BUCKET }}/"
-              Pop-Location
-            } catch {
-              $_
-              Pop-Location
-            }
+      #       try {
+      #         Push-Location dist
+      #         Get-ChildItem
+      #         ../mc.exe cp . "myminio/${{ secrets.MINIO_BUCKET }}/"
+      #         Pop-Location
+      #       } catch {
+      #         $_
+      #         Pop-Location
+      #       }
 
-            try {
-              Get-ChildItem -Path "dist" | ForEach-Object {
-                ./mc.exe cp $_.FullName "myminio/${{ secrets.MINIO_BUCKET }}/$($_.Name)"
-              }
-            } catch {
-              $_
-            }
-          } else {
-            mc cp --recursive ./dist myminio/${{ secrets.MINIO_BUCKET }}/
-          }
+      #       try {
+      #         Get-ChildItem -Path "dist" | ForEach-Object {
+      #           ./mc.exe cp $_.FullName "myminio/${{ secrets.MINIO_BUCKET }}/$($_.Name)"
+      #         }
+      #       } catch {
+      #         $_
+      #       }
+      #     } else {
+      #       mc cp --recursive ./dist myminio/${{ secrets.MINIO_BUCKET }}/
+      #     }
