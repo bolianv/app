@@ -128,12 +128,13 @@ jobs:
         run: |
           mkdir -p dist
           touch dist/test.txt
-          ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+          ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
 
 
           echo 123>dist/test2.txt
-          ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
-
+          dir dist\test2.txt
+          ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+          
 
           # $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           # $os = "${{ matrix.platform }}"
@@ -141,21 +142,19 @@ jobs:
           # $fileName = "${os}_${timestamp}.${ext}"
           # # 创建zip文件
           # #Compress-Archive -Path "myapp/build/windows/*" -DestinationPath "dist/a.zip" -Force
-          # Compress-Archive -Path "${{ matrix.artifact_path }}/*" -DestinationPath "dist/a.zip" -Force
+          # Compress-Archive -Path "${{ matrix.artifact_path }}/*" -DestinationPath "dist\a.zip" -Force
+          # dir dist\a.zip
           # try{
-          #   ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+          #   ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
           # } catch {
           #   $_
           # }
-
-          Remove-Item -Path "dist" -Recurse -Force
-
-          mkdir -p dist
-          echo 123>dist/test3.txt
-          ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
-          
-          pwd
-          ls dist
+          # Remove-Item -Path "dist" -Recurse -Force
+          # mkdir -p dist
+          # echo 123>dist/test3.txt
+          # ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+          # pwd
+          # ls dist
 
       # # 上传到 MinIO
       # - name: Upload to MinIO
