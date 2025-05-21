@@ -127,15 +127,12 @@ jobs:
         shell: pwsh
         run: |
           mkdir -p dist
-          # touch dist/test.txt
-          # ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
-
-
-          
-          gci dist/
-          "123" | Out-File -FilePath "dist/test2.txt"
-          
+          mkdir -p test
+          "123" | Out-File -FilePath "test/test3.txt"
+          Compress-Archive -Path "test/*" -DestinationPath "dist\a.zip" -Force
           ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+
+
           
 
           # $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
@@ -151,12 +148,12 @@ jobs:
           # } catch {
           #   $_
           # }
-          Remove-Item -Path "dist" -Recurse -Force
-          mkdir -p dist
-          "123" | Out-File -FilePath "dist/test3.txt"
-          ./mc.exe cp  --debug --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
-          pwd
-          ls dist
+          # Remove-Item -Path "dist" -Recurse -Force
+          # mkdir -p dist
+          # "123" | Out-File -FilePath "dist/test3.txt"
+          # ./mc.exe cp  --debug --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+          # pwd
+          # ls dist
 
       # # 上传到 MinIO
       # - name: Upload to MinIO
