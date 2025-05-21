@@ -132,7 +132,7 @@ jobs:
           #Compress-Archive -Path "test/*" -DestinationPath "dist\a.zip" -Force
           tar -zcvf testwindows.tar.gz dist
           ls dist
-          ./mc.exe cp --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
+          ./mc.exe mirror --debug --recursive ".\dist" "myminio/${{ secrets.MINIO_BUCKET }}/dist"
           
 
 
