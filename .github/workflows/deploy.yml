@@ -143,6 +143,8 @@ jobs:
       - name: Upload to MinIO
         shell: pwsh
         run: |
+          pwd
+          gci dist
           if ($IsWindows) {
             ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
           } else {
