@@ -13,7 +13,7 @@ env:
   MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
   MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
   MINIO_BUCKET: ${{ secrets.MINIO_BUCKET }}
-  APP_DIR: myapp
+  APP_NAME: myapp
 
 jobs:
   build:
@@ -24,25 +24,25 @@ jobs:
           - os: ubuntu-latest
             platform: linux
             build_cmd: flutter build apk --release
-            artifact_path: ${APP_DIR}/build/app/outputs/flutter-apk/app-release.apk
+            artifact_path: ${APP_NAME}/build/app/outputs/flutter-apk/app-release.apk
             artifact_ext: apk
 
           - os: macos-latest
             platform: darwin
             build_cmd: flutter build macos --release
-            artifact_path: ${APP_DIR}/build/macos/Build/Products/Release/myapp.app
+            artifact_path: ${APP_NAME}/build/macos/Build/Products/Release/${APP_NAME}.app
             artifact_ext: zip
 
           - os: windows-latest
             platform: windows
             build_cmd: flutter build windows --release
-            artifact_path: ${APP_DIR}\build\windows\x64\runner\Release
+            artifact_path: ${APP_NAME}\build\windows\x64\runner\Release
             artifact_ext: tar.gz
 
     steps:
       # - name: s
       #   run: |
-      #     echo ${{ env.APP_DIR }}
+      #     echo ${{ env.APP_NAME }}
           
       - name: Setup MinIO client
         if: runner.os != 'Windows'
@@ -105,11 +105,11 @@ jobs:
 
       - name: Flutter pub get
         run: flutter pub get
-        working-directory: ${{ env.APP_DIR }}
+        working-directory: ${{ env.APP_NAME }}
 
       - name: Build app
         run: ${{ matrix.build_cmd }}
-        working-directory: ${{ env.APP_DIR }}
+        working-directory: ${{ env.APP_NAME }}
 
       # 非 Windows: 处理 artifact
       - name: Prepare artifact (Unix/macOS)
@@ -123,7 +123,7 @@ jobs:
 
           if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
             cd "${{ matrix.artifact_path}}/.."
-            zip -r "../../../../../../dist/$FILE_NAME" "myapp.app"
+            zip -r "../../../../../../dist/$FILE_NAME" "${APP_NAME}.app"
           else
             cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
           fi
