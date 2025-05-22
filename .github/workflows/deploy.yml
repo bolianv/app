@@ -107,50 +107,50 @@ jobs:
         run: flutter pub get
         working-directory: ${{ env.APP_DIR }}
 
-      # - name: Build app
-      #   run: ${{ matrix.build_cmd }}
-      #   working-directory: ${{ env.APP_DIR }}
+      - name: Build app
+        run: ${{ matrix.build_cmd }}
+        working-directory: ${{ env.APP_DIR }}
 
-      # # 非 Windows: 处理 artifact
-      # - name: Prepare artifact (Unix/macOS)
-      #   if: runner.os != 'Windows'
-      #   shell: bash
-      #   run: |
-      #     mkdir -p dist
-      #     TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-      #     OS_NAME=${{ matrix.platform }}
-      #     FILE_NAME="${OS_NAME}_${TIMESTAMP}.${{ matrix.artifact_ext }}"
+      # 非 Windows: 处理 artifact
+      - name: Prepare artifact (Unix/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist
+          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          OS_NAME=${{ matrix.platform }}
+          FILE_NAME="${OS_NAME}_${TIMESTAMP}.${{ matrix.artifact_ext }}"
 
-      #     if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
-      #       cd "${{ matrix.artifact_path}}/.."
-      #       zip -r "../../../../../../dist/$FILE_NAME" "myapp.app"
-      #     else
-      #       cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
-      #     fi
+          if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
+            cd "${{ matrix.artifact_path}}/.."
+            zip -r "../../../../../../dist/$FILE_NAME" "myapp.app"
+          else
+            cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
+          fi
 
-      # # Windows: 处理 artifact
-      # - name: Prepare artifact (Windows)
-      #   if: runner.os == 'Windows'
-      #   shell: pwsh
-      #   run: |
-      #     # mkdir -p test
-      #     # "123" | Out-File -FilePath "test\test3.txt"
-      #     # Compress-Archive -Path ".\test" -DestinationPath "D:\a\app\app\dist\a.zip" -Force
-      #     # #tar -zcvf .\dist\testwindows.tar.gz test
-      #     # ./mc.exe cp --debug --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
-      #     mkdir -p dist
-      #     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-      #     $os = "${{ matrix.platform }}"
-      #     $ext = "${{ matrix.artifact_ext }}"
-      #     $fileName = "${os}_${timestamp}.${ext}"
-      #     tar -zcvf .\dist\$fileName -C "${{ matrix.artifact_path }}" .
+      # Windows: 处理 artifact
+      - name: Prepare artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # mkdir -p test
+          # "123" | Out-File -FilePath "test\test3.txt"
+          # Compress-Archive -Path ".\test" -DestinationPath "D:\a\app\app\dist\a.zip" -Force
+          # #tar -zcvf .\dist\testwindows.tar.gz test
+          # ./mc.exe cp --debug --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
+          mkdir -p dist
+          $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+          $os = "${{ matrix.platform }}"
+          $ext = "${{ matrix.artifact_ext }}"
+          $fileName = "${os}_${timestamp}.${ext}"
+          tar -zcvf .\dist\$fileName -C "${{ matrix.artifact_path }}" .
 
-      # # 上传到 MinIO
-      # - name: Upload to MinIO
-      #   shell: pwsh
-      #   run: |
-      #     if ($IsWindows) {
-      #       ./mc.exe cp  --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
-      #     } else {
-      #       mc cp --recursive ./dist/ myminio/${{ secrets.MINIO_BUCKET }}/dist/
-      #     }
+      # 上传到 MinIO
+      - name: Upload to MinIO
+        shell: pwsh
+        run: |
+          if ($IsWindows) {
+            ./mc.exe cp  --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
+          } else {
+            mc cp --recursive ./dist/ myminio/${{ secrets.MINIO_BUCKET }}/dist/
+          }
