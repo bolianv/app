@@ -132,6 +132,7 @@ jobs:
           # Compress-Archive -Path ".\test" -DestinationPath "D:\a\app\app\dist\a.zip" -Force
           # #tar -zcvf .\dist\testwindows.tar.gz test
           # ./mc.exe cp --debug --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
+          mkdir -p dist
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $os = "${{ matrix.platform }}"
           $ext = "${{ matrix.artifact_ext }}"
@@ -143,7 +144,7 @@ jobs:
         shell: pwsh
         run: |
           if ($IsWindows) {
-            ./mc.exe cp  --debug --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
+            ./mc.exe cp  --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
           } else {
             mc cp --recursive ./dist/ myminio/${{ secrets.MINIO_BUCKET }}/dist/
           }
