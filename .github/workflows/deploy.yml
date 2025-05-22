@@ -1,6 +1,7 @@
 name: Build Apps
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -12,6 +13,7 @@ env:
   MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
   MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
   MINIO_BUCKET: ${{ secrets.MINIO_BUCKET }}
+  APP_DIR: myapp
 
 jobs:
   build:
@@ -22,19 +24,19 @@ jobs:
           - os: ubuntu-latest
             platform: linux
             build_cmd: flutter build apk --release
-            artifact_path: myapp/build/app/outputs/flutter-apk/app-release.apk
+            artifact_path: ${{ env.APP_DIR }}/build/app/outputs/flutter-apk/app-release.apk
             artifact_ext: apk
 
           - os: macos-latest
             platform: darwin
             build_cmd: flutter build macos --release
-            artifact_path: myapp/build/macos/Build/Products/Release/myapp.app
+            artifact_path: ${{ env.APP_DIR }}/build/macos/Build/Products/Release/myapp.app
             artifact_ext: zip
 
           - os: windows-latest
             platform: windows
             build_cmd: flutter build windows --release
-            artifact_path: myapp\build\windows\x64\runner\Release
+            artifact_path: ${{ env.APP_DIR }}\build\windows\x64\runner\Release
             artifact_ext: tar.gz
 
     steps:
@@ -99,11 +101,11 @@ jobs:
 
       - name: Flutter pub get
         run: flutter pub get
-        working-directory: ./myapp
+        working-directory: ./${{ env.APP_DIR }}
 
       - name: Build app
         run: ${{ matrix.build_cmd }}
-        working-directory: ./myapp
+        working-directory: ./${{ env.APP_DIR }}
 
       # 非 Windows: 处理 artifact
       - name: Prepare artifact (Unix/macOS)
