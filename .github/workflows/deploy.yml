@@ -36,7 +36,7 @@ jobs:
           - os: windows-latest
             platform: windows
             build_cmd: flutter build windows --release
-            artifact_path: ${APP_NAME}\build\windows\x64\runner\Release
+            artifact_path: $env:APP_NAME\build\windows\x64\runner\Release
             artifact_ext: tar.gz
 
     steps:
