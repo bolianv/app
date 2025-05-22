@@ -19,17 +19,17 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: ubuntu-latest
-          #   platform: linux
-          #   build_cmd: flutter build apk --release
-          #   artifact_path: myapp/build/app/outputs/flutter-apk/app-release.apk
-          #   artifact_ext: apk
+          - os: ubuntu-latest
+            platform: linux
+            build_cmd: flutter build apk --release
+            artifact_path: myapp/build/app/outputs/flutter-apk/app-release.apk
+            artifact_ext: apk
 
-          # - os: macos-latest
-          #   platform: darwin
-          #   build_cmd: flutter build macos --release
-          #   artifact_path: myapp/build/macos/Build/Products/Release/myapp.app
-          #   artifact_ext: zip
+          - os: macos-latest
+            platform: darwin
+            build_cmd: flutter build macos --release
+            artifact_path: myapp/build/macos/Build/Products/Release/myapp.app
+            artifact_ext: zip
 
           - os: windows-latest
             platform: windows
@@ -132,46 +132,19 @@ jobs:
           # Compress-Archive -Path ".\test" -DestinationPath "D:\a\app\app\dist\a.zip" -Force
           # #tar -zcvf .\dist\testwindows.tar.gz test
           # ./mc.exe cp --debug --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
-          
           mkdir -p dist
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $os = "${{ matrix.platform }}"
           $ext = "${{ matrix.artifact_ext }}"
           $fileName = "${os}_${timestamp}.${ext}"
           tar -zcvf .\dist\$fileName -C "${{ matrix.artifact_path }}" .
-          ./mc.exe cp  --debug --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
 
-      # # 上传到 MinIO
-      # - name: Upload to MinIO
-      #   shell: pwsh
-      #   run: |
-      #     if ($IsWindows) {
-      #       pwd
-      #       ls dist
-
-      #       try {
-      #         ./mc.exe cp --recursive "./dist" "myminio/${{ secrets.MINIO_BUCKET }}/"
-      #       } catch {
-      #         $_
-      #       }
-
-      #       try {
-      #         Push-Location dist
-      #         Get-ChildItem
-      #         ../mc.exe cp . "myminio/${{ secrets.MINIO_BUCKET }}/"
-      #         Pop-Location
-      #       } catch {
-      #         $_
-      #         Pop-Location
-      #       }
-
-      #       try {
-      #         Get-ChildItem -Path "dist" | ForEach-Object {
-      #           ./mc.exe cp $_.FullName "myminio/${{ secrets.MINIO_BUCKET }}/$($_.Name)"
-      #         }
-      #       } catch {
-      #         $_
-      #       }
-      #     } else {
-      #       mc cp --recursive ./dist myminio/${{ secrets.MINIO_BUCKET }}/
-      #     }
+      # 上传到 MinIO
+      - name: Upload to MinIO
+        shell: pwsh
+        run: |
+          if ($IsWindows) {
+            ./mc.exe cp  --debug --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
+          } else {
+            mc cp --recursive ./dist/ myminio/${{ secrets.MINIO_BUCKET }}/dist/
+          }
