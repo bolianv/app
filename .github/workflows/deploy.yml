@@ -27,17 +27,17 @@ jobs:
           #   artifact_path: ${APP_NAME}/build/app/outputs/flutter-apk/app-release.apk
           #   artifact_ext: apk
 
-          - os: macos-latest
-            platform: darwin
-            build_cmd: flutter build macos --release
-            artifact_path: ${APP_NAME}/build/macos/Build/Products/Release/${APP_NAME}.app
-            artifact_ext: zip
+          # - os: macos-latest
+          #   platform: darwin
+          #   build_cmd: flutter build macos --release
+          #   artifact_path: ${APP_NAME}/build/macos/Build/Products/Release/${APP_NAME}.app
+          #   artifact_ext: zip
 
-          # - os: windows-latest
-          #   platform: windows
-          #   build_cmd: flutter build windows --release
-          #   artifact_path: $env:APP_NAME\build\windows\x64\runner\Release
-          #   artifact_ext: tar.gz
+          - os: windows-latest
+            platform: windows
+            build_cmd: flutter build windows --release
+            artifact_path: $env:APP_NAME\build\windows\x64\runner\Release
+            artifact_ext: tar.gz
 
     steps:
       - name: Setup MinIO client
