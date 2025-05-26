@@ -35,7 +35,7 @@ jobs:
 
           - os: windows-latest
             platform: windows
-            build_cmd: flutter build windows --release
+            build_cmd: flutter build windows --release --verbose
             artifact_path: $env:APP_NAME\build\windows\x64\runner\Release
             artifact_ext: tar.gz
 
@@ -99,16 +99,18 @@ jobs:
         with:
           flutter-version: '3.24.5'
           channel: "stable"
-      # - name: Set up JDK 8
-      #   uses: actions/setup-java@v4
-      #   with:
-      #     distribution: 'temurin'
-      #     java-version: '17'
-      # - name: Setup Android SDK
-      #   uses: android-actions/setup-android@v3
+          
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Flutter pub get
         run: |
+          flutter clean
           flutter pub get
           flutter pub run build_runner build
         working-directory: ${{ env.APP_NAME }}
