@@ -107,7 +107,9 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Flutter pub get
-        run: flutter pub get
+        run: |
+          flutter pub get
+          flutter pub run build_runner build
         working-directory: ${{ env.APP_NAME }}
 
       - name: Build app
