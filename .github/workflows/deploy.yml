@@ -139,7 +139,7 @@ jobs:
               Write-Host "未找到 bash 或 sh"
           }
           chmod a+x ./build_libclash.sh
-          ./build_libclash.sh
+          bash ./build_libclash.sh
           Get-ChildItem .
           Get-ChildItem ../
           #Get-ChildItem dist
