@@ -42,11 +42,7 @@ jobs:
     steps:
       - name: test
         run: |
-          if (Get-Command 7z -ErrorAction SilentlyContinue) {
-              Write-Host "命令存在"
-          } else {
-              Write-Host "命令不存在"
-          }
+         Get-Location
 
 
       # - name: Setup MinIO client
