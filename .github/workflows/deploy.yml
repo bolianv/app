@@ -126,12 +126,23 @@ jobs:
       - name: Compile libclash.dll
         if: runner.os == 'Windows'
         working-directory: clash_flt2/fclash
+        shell: pwsh
         run: |
+          $hasBash = Get-Command bash -ErrorAction SilentlyContinue
+          $hasSh   = Get-Command sh   -ErrorAction SilentlyContinue
+
+          if ($hasBash) {
+              Write-Host "已找到 bash: $($hasBash.Source)"
+          } elseif ($hasSh) {
+              Write-Host "已找到 sh: $($hasSh.Source)"
+          } else {
+              Write-Host "未找到 bash 或 sh"
+          }
           chmod a+x ./build_libclash.sh
           ./build_libclash.sh
           Get-ChildItem .
           Get-ChildItem ../
-          Get-ChildItem dist
+          #Get-ChildItem dist
           #Copy-Item -Path "dist/libclash.dll" -Destination "../../$APP_NAME/windows/libclash.dll"
       # - name: Set up Flutter
       #   uses: subosito/flutter-action@v2
