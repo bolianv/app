@@ -42,7 +42,12 @@ jobs:
     steps:
       - name: test
         run: |
-          Write-Output "Windows版本: $((Get-ComputerInfo).OsName)`n系统位数: $((Get-ComputerInfo).OsArchitecture)`nPowerShell位数: $(if ([Environment]::Is64BitProcess) {'64位'} else {'32位'})"
+          if (Get-Command 7z -ErrorAction SilentlyContinue) {
+              Write-Host "命令存在"
+          } else {
+              Write-Host "命令不存在"
+          }
+
 
       # - name: Setup MinIO client
       #   if: runner.os != 'Windows'
