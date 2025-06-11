@@ -61,7 +61,7 @@ jobs:
           echo "$mingwPath\bin" >> $env:GITHUB_PATH
           
           # 验证安装
-          & "$mingwPath\bin\gcc.exe" --version
+          gcc -v
 
 
       # - name: Setup MinIO client
