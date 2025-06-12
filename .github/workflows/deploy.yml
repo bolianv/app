@@ -208,6 +208,26 @@ jobs:
             -OutFile "$langDir\ChineseSimplified.isl"
 
           Write-Host "Downloaded ChineseSimplified.isl to $langDir"
+
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          ISCC.exe ${{ env.APP_NAME }}\AssembleWinSetup.iss
+          Get-ChildItem "${{ matrix.artifact_path }}"
+
+      - name: Get built EXE full path and save to EXE_FILE
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem "${{ matrix.artifact_path }}\..\" -Filter *.exe | Select-Object -First 1
+          if (-not $exe) {
+            Write-Error "No .exe file found in the runner directory."
+            exit 1
+          }
+
+          $exePath = $exe.FullName
+          echo "EXE_FILE=$exePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          Write-Host "Found EXE full path: $exePath"
       # Windows: 处理 artifact
       - name: Prepare artifact (Windows)
         if: runner.os == 'Windows'
@@ -219,14 +239,14 @@ jobs:
           # #tar -zcvf .\dist\testwindows.tar.gz test
           # ./mc.exe cp --debug --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
           mkdir -p dist
-          ISCC.exe ${{ env.APP_NAME }}\AssembleWinSetup.iss
-          Get-ChildItem "${{ matrix.artifact_path }}"
 
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $os = "${{ matrix.platform }}"
           $ext = "${{ matrix.artifact_ext }}"
           $fileName = "${os}_${timestamp}.${ext}"
           tar -zcvf .\dist\$fileName -C "${{ matrix.artifact_path }}" .
+          echo ${{ env.EXE_FILE }}
+          Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\dist\"
 
       # 上传到 MinIO
       - name: Upload to MinIO
