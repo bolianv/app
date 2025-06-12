@@ -138,11 +138,11 @@ jobs:
           #bash ./build_libclash_win.sh
           echo (Resolve-Path "../../../").Path
           echo (Resolve-Path "../../").Path
-          echo (Resolve-Path "${{ github.workspace }}/$APP_NAME/windows/").Path
+          echo (Resolve-Path "${{ github.workspace }}/${{ env.APP_NAME }}\windows\").Path
           
           # Get-ChildItem dist
-          Copy-Item -Path "dist/libclash.dll" -Destination "${{ github.workspace }}/$APP_NAME/windows/"
-          Get-ChildItem "${{ github.workspace }}/$APP_NAME/windows/"
+          Copy-Item -Path "dist/libclash.dll" -Destination "${{ github.workspace }}\${{ env.APP_NAME }}\windows\"
+          Get-ChildItem "${{ github.workspace }}\${{ env.APP_NAME }}\windows\"
           # Copy-Item -Path "dist/libclash.dll" -Destination "D:/a/app/app/app/windows/"
           # Get-ChildItem "D:/a/app/app/app/windows/"
       # - name: Set up Flutter
