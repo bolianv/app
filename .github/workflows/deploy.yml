@@ -42,7 +42,7 @@ jobs:
     steps:
       - name: Download Inno Setup
         if: runner.os == 'Windows'
-        uses: pwall2222/inno-setup-download@v1
+        uses: pwall2222/inno-setup-download
         with:
           version: 6.4.3
 
