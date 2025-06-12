@@ -129,7 +129,7 @@ jobs:
         shell: pwsh
         run: |
           chmod a+x ./build_libclash_win.sh
-          #bash ./build_libclash_win.sh
+          bash ./build_libclash_win.sh
           # echo (Resolve-Path "../../../").Path
           # echo (Resolve-Path "../../").Path
           # echo (Resolve-Path "${{ github.workspace }}/${{ env.APP_NAME }}\windows\").Path
