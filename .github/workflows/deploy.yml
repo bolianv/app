@@ -138,7 +138,7 @@ jobs:
           bash ./build_libclash_win.sh
           Get-ChildItem dist
           Copy-Item -Path "dist/libclash.dll" -Destination "../../$APP_NAME/windows"
-          Get-ChildItem "D:/a/app/app/app/windows"
+          Get-ChildItem "../../$APP_NAME/windows"
           Copy-Item -Path "dist/libclash.dll" -Destination "D:/a/app/app/app/windows"
           Get-ChildItem "D:/a/app/app/app/windows"
       # - name: Set up Flutter
