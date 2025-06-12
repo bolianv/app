@@ -136,7 +136,6 @@ jobs:
         run: |
           chmod a+x ./build_libclash_win.sh
           bash ./build_libclash_win.sh
-          echo (Resolve-Path "../../$APP_NAME/windows/").Path
           echo (Resolve-Path "../$APP_NAME/windows/").Path
           
           # Get-ChildItem dist
