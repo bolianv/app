@@ -49,8 +49,21 @@ jobs:
           Start-Process -Wait -FilePath $output -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"
           echo "C:\Program Files (x86)\Inno Setup 6" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-          Get-ChildItem "C:\Program Files (x86)\Inno Setup 6"
-          Get-ChildItem "C:\Program Files (x86)\Inno Setup 6\Languages"
+      - name: Download Inno Setup Simplified Chinese Language File
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $langDir = "C:\Program Files (x86)\Inno Setup 6\Languages"
+          if (!(Test-Path $langDir)) {
+            Write-Error "Inno Setup not found at expected path: $langDir"
+            exit 1
+          }
+
+          Invoke-WebRequest `
+            -Uri "https://raw.githubusercontent.com/kira-96/Inno-Setup-Chinese-Simplified-Translation/main/ChineseSimplified.isl" `
+            -OutFile "$langDir\ChineseSimplified.isl"
+
+          Write-Host "Downloaded ChineseSimplified.isl to $langDir"
 
       # - name: Compile with Inno Setup
       #   run: ISCC.exe
