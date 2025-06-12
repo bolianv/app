@@ -40,11 +40,17 @@ jobs:
             artifact_ext: tar.gz
 
     steps:
-      - name: Download Inno Setup
-        if: runner.os == 'Windows'
-        uses: pwall2222/inno-setup-download@v0.0.8
-        with:
-          version: 6.4.3
+      - name: Install Inno Setup
+        run: |
+          $ErrorActionPreference = "Stop"
+          $url = "https://jrsoftware.org/download.php/is.exe"
+          $output = "$env:TEMP\innosetup.exe"
+          Invoke-WebRequest -Uri $url -OutFile $output
+          Start-Process -Wait -FilePath $output -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"
+          echo "C:\Program Files (x86)\Inno Setup 6" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Compile with Inno Setup
+        run: ISCC.exe
 
       # - name: Setup MinIO client
       #   if: runner.os != 'Windows'
