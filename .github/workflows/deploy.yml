@@ -136,6 +136,7 @@ jobs:
         run: |
           chmod a+x ./build_libclash_win.sh
           #bash ./build_libclash_win.sh
+          echo ${{ github.workspace }}
           echo (Resolve-Path "../../../").Path
           echo (Resolve-Path "../../").Path
           echo (Resolve-Path "$GITHUB_WORKSPACE/$APP_NAME/windows/").Path
