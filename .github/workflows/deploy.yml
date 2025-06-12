@@ -136,11 +136,12 @@ jobs:
         run: |
           chmod a+x ./build_libclash_win.sh
           bash ./build_libclash_win.sh
+          (Resolve-Path "../../$APP_NAME/windows/").Path
           Get-ChildItem dist
-          Copy-Item -Path "dist/libclash.dll" -Destination "../../$APP_NAME/windows"
-          Get-ChildItem "../../$APP_NAME/windows"
-          Copy-Item -Path "dist/libclash.dll" -Destination "D:/a/app/app/app/windows"
-          Get-ChildItem "D:/a/app/app/app/windows"
+          Copy-Item -Path "dist/libclash.dll" -Destination "../../$APP_NAME/windows/"
+          Get-ChildItem "../../$APP_NAME/windows/"
+          Copy-Item -Path "dist/libclash.dll" -Destination "D:/a/app/app/app/windows/"
+          Get-ChildItem "D:/a/app/app/app/windows/"
       # - name: Set up Flutter
       #   uses: subosito/flutter-action@v2
       #   with:
