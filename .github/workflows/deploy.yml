@@ -138,7 +138,7 @@ jobs:
           #bash ./build_libclash_win.sh
           echo (Resolve-Path "../../../").Path
           echo (Resolve-Path "../../").Path
-          echo (Resolve-Path "../").Path
+          echo (Resolve-Path "../$APP_NAME/windows/").Path
           
           # Get-ChildItem dist
           #Copy-Item -Path "dist/libclash.dll" -Destination "../../$APP_NAME/windows/"
