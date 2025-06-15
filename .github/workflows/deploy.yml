@@ -220,12 +220,14 @@ jobs:
           Write-Host "Downloaded ChineseSimplified.isl to $langDir"
 
       - name: Inno Setup
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           ISCC.exe ${{ env.APP_DIRNAME }}\AssembleWinSetup.iss
           Get-ChildItem "${{ matrix.artifact_path }}"
 
       - name: Get built EXE full path and save to EXE_FILE
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $exe = Get-ChildItem "${{ matrix.artifact_path }}\..\" -Filter *.exe | Select-Object -First 1
