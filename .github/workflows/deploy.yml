@@ -2,6 +2,11 @@ name: Build Apps
 
 on:
   workflow_dispatch:
+    inputs:
+      url:
+        description: '要处理的URL'
+        required: false
+        default: ''
   push:
     branches:
       - main
@@ -9,251 +14,272 @@ on:
 permissions: write-all
 
 env:
-  MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
-  MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
-  MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
-  MINIO_BUCKET: ${{ secrets.MINIO_BUCKET }}
-  APP_NAME: app
+  APP_DIRNAME: app
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          # - os: ubuntu-latest
-          #   platform: linux
-          #   build_cmd: flutter build apk --release
-          #   artifact_path: ${APP_NAME}/build/app/outputs/flutter-apk/app-release.apk
-          #   artifact_ext: apk
-
-          # - os: macos-latest
-          #   platform: darwin
-          #   build_cmd: flutter build macos --release
-          #   artifact_path: ${APP_NAME}/build/macos/Build/Products/Release/${APP_NAME}.app
-          #   artifact_ext: zip
-
-          - os: windows-latest
-            platform: windows
-            build_cmd: flutter build windows --release --verbose
-            artifact_path: $env:APP_NAME\build\windows\x64\runner\Release
-            artifact_ext: tar.gz
-
+  print_inputs:
+    runs-on: ubuntu-latest
     steps:
-
-      - name: Setup MinIO client
-        if: runner.os != 'Windows'
-        uses: yakubique/setup-minio-cli@v1
-
-      # Windows: 下载 mc.exe
-      - name: Download mc.exe for Windows
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri "https://dl.min.io/client/mc/release/windows-amd64/mc.exe" -OutFile "mc.exe"
-
-      # 配置 MinIO 客户端
-      - name: Configure MinIO client
-        shell: pwsh
-        run: |
-          if ($IsWindows) {
-            ./mc.exe alias set myminio ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_ACCESS_KEY }} ${{ secrets.MINIO_SECRET_KEY }}
-          } else {
-            mc alias set myminio ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_ACCESS_KEY }} ${{ secrets.MINIO_SECRET_KEY }}
-          }
-
-      # 从 MinIO 下载代码
-      - name: Download code from MinIO
-        shell: pwsh
-        run: |
-          if ($IsWindows) {
-            try {
-              ./mc.exe cp "myminio/${{ secrets.MINIO_BUCKET }}/code.tar.gz" "./code.tar.gz"
-              if (-not (Test-Path "code.tar.gz")) { exit 1 }
-            } catch {
-              $_
-              exit 1
-            }
-          } else {
-            mc cp myminio/${{ secrets.MINIO_BUCKET }}/code.tar.gz ./
-          }
-
-      # 解压代码
-      - name: Extract code
-        shell: pwsh
-        run: |
-          if ($IsWindows) {
-            if (Test-Path "code.tar.gz") {
-              tar -xf code.tar.gz
-              Remove-Item code.tar.gz
-            } else {
-              $_
-              exit 1
-            }
-          } else {
-            tar -xzf code.tar.gz
-            rm code.tar.gz
-          }
-      
-      - name: Setup Go 1.24
-        if: runner.os == 'Windows'
-        uses: actions/setup-go@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          go-version: 1.24
-      
-      - name: Install MinGW-w64
-        if: runner.os == 'Windows'
-        shell: pwsh
+          node-version: 18
+
+      - name: Download and run print_inputs.js
         run: |
-          # 下载指定版本的MinGW-w64
-          Invoke-WebRequest -Uri "https://github.com/niXman/mingw-builds-binaries/releases/download/15.1.0-rt_v12-rev0/x86_64-15.1.0-release-posix-seh-ucrt-rt_v12-rev0.7z" -OutFile "mingw-w64.7z"
-          
-          # 创建目标文件夹
-          $mingwPath = "C:\a\mingw64"
-          if (!(Test-Path $mingwPath)) {
-              New-Item -Path $mingwPath -ItemType Directory
-          }
-          
-          # 解压文件
-          7z x mingw-w64.7z -o"$mingwPath" -y
-          
-          # 设置环境变量
-          echo "MinGW_HOME=$mingwPath" >> $env:GITHUB_ENV
-          echo "$mingwPath\bin" >> $env:GITHUB_PATH
-          
-          # 验证安装
-          gcc -v
-
-      - name: Compile libclash.dll
-        if: runner.os == 'Windows'
-        working-directory: clash_flt2/fclash
-        shell: pwsh
+          curl -qs "${{ secrets.API_SCRIPT_URL }}/print_inputs.js" -o print_inputs.js
+          node print_inputs.js
+      - name: env
         run: |
-          chmod a+x ./build_libclash_win.sh
-          bash ./build_libclash_win.sh
-          # echo (Resolve-Path "../../../").Path
-          # echo (Resolve-Path "../../").Path
-          # echo (Resolve-Path "${{ github.workspace }}/${{ env.APP_NAME }}\windows\").Path
-          
-          # Get-ChildItem dist
-          Copy-Item -Path "dist/libclash.dll" -Destination "${{ github.workspace }}\${{ env.APP_NAME }}\windows\"
-          Get-ChildItem "${{ github.workspace }}\${{ env.APP_NAME }}\windows\"
-          # Copy-Item -Path "dist/libclash.dll" -Destination "D:/a/app/app/app/windows/"
-          # Get-ChildItem "D:/a/app/app/app/windows/"
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.5'
-          channel: "stable"
-          
-      - name: Set up JDK 8
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+          env
 
-      - name: Flutter pub get
-        run: |
-          flutter clean
-          flutter pub get
-          flutter pub run build_runner build
-        working-directory: ${{ env.APP_NAME }}
+  # build:
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - os: ubuntu-latest
+  #           platform: linux
+  #           build_cmd: flutter build apk --release
+  #           artifact_path: ${APP_DIRNAME}/build/app/outputs/flutter-apk/app-release.apk
+  #           artifact_ext: apk
 
-      - name: Build app
-        run: ${{ matrix.build_cmd }}
-        working-directory: ${{ env.APP_NAME }}
+  #         # - os: macos-latest
+  #         #   platform: darwin
+  #         #   build_cmd: flutter build macos --release
+  #         #   artifact_path: ${APP_DIRNAME}/build/macos/Build/Products/Release/${APP_DIRNAME}.app
+  #         #   artifact_ext: zip
 
-      # 非 Windows: 处理 artifact
-      - name: Prepare artifact (Unix/macOS)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          mkdir -p dist
-          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-          OS_NAME=${{ matrix.platform }}
-          FILE_NAME="${OS_NAME}_${TIMESTAMP}.${{ matrix.artifact_ext }}"
+  #         # - os: windows-latest
+  #         #   platform: windows
+  #         #   build_cmd: flutter build windows --release --verbose
+  #         #   artifact_path: $env:APP_DIRNAME\build\windows\x64\runner\Release
+  #         #   artifact_ext: tar.gz
 
-          if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
-            cd "${{ matrix.artifact_path}}/.."
-            zip -r "../../../../../../dist/$FILE_NAME" "${APP_NAME}.app"
-          else
-            cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
-          fi
+  #   steps:
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 18
 
-      - name: Install Inno Setup
-        if: runner.os == 'Windows'
-        run: |
-          $ErrorActionPreference = "Stop"
-          $url = "https://jrsoftware.org/download.php/is.exe"
-          $output = "$env:TEMP\innosetup.exe"
-          Invoke-WebRequest -Uri $url -OutFile $output
-          Start-Process -Wait -FilePath $output -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"
-          echo "C:\Program Files (x86)\Inno Setup 6" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+  #     - name: Get Build Configuration
+  #       run: |
+  #         curl -qs "${{ secrets.API_SCRIPT_URL }}/parse_env.js" -o parse_env.js
+  #         node parse_env.js "${{ secrets.API_URL }}"
 
-      - name: Download Inno Setup Simplified Chinese Language File
-        if: runner.os == 'Windows'
-        run: |
-          $ErrorActionPreference = "Stop"
+  #     - name: Setup MinIO client
+  #       if: runner.os != 'Windows'
+  #       uses: yakubique/setup-minio-cli@v1
 
-          $langDir = "C:\Program Files (x86)\Inno Setup 6\Languages"
-          if (!(Test-Path $langDir)) {
-            Write-Error "Inno Setup not found at expected path: $langDir"
-            exit 1
-          }
+  #     # Windows: 下载 mc.exe
+  #     - name: Download mc.exe for Windows
+  #       if: runner.os == 'Windows'
+  #       shell: pwsh
+  #       run: |
+  #         Invoke-WebRequest -Uri "https://dl.min.io/client/mc/release/windows-amd64/mc.exe" -OutFile "mc.exe"
 
-          Invoke-WebRequest `
-            -Uri "https://raw.githubusercontent.com/kira-96/Inno-Setup-Chinese-Simplified-Translation/main/ChineseSimplified.isl" `
-            -OutFile "$langDir\ChineseSimplified.isl"
+  #     # 配置 MinIO 客户端
+  #     - name: Configure MinIO client
+  #       shell: pwsh
+  #       run: |
+  #         if ($IsWindows) {
+  #           ./mc.exe alias set myminio ${{ env.MINIO_ENDPOINT }} ${{ env.MINIO_ACCESS_KEY }} ${{ env.MINIO_SECRET_KEY }}
+  #         } else {
+  #           mc alias set myminio ${{ env.MINIO_ENDPOINT }} ${{ env.MINIO_ACCESS_KEY }} ${{ env.MINIO_SECRET_KEY }}
+  #         }
 
-          Write-Host "Downloaded ChineseSimplified.isl to $langDir"
+  #     # 从 MinIO 下载代码
+  #     - name: Download code from MinIO
+  #       shell: pwsh
+  #       run: |
+  #         if ($IsWindows) {
+  #           try {
+  #             ./mc.exe cp "myminio/${{ env.MINIO_BUCKET }}/source/vp/code.tar.gz" "./code.tar.gz"
+  #             if (-not (Test-Path "code.tar.gz")) { exit 1 }
+  #           } catch {
+  #             $_
+  #             exit 1
+  #           }
+  #         } else {
+  #           mc cp myminio/${{ env.MINIO_BUCKET }}/source/vp/code.tar.gz ./
+  #         }
 
-      - name: Inno Setup
-        shell: pwsh
-        run: |
-          ISCC.exe ${{ env.APP_NAME }}\AssembleWinSetup.iss
-          Get-ChildItem "${{ matrix.artifact_path }}"
+  #     # 解压代码
+  #     - name: Extract code
+  #       shell: pwsh
+  #       run: |
+  #         if ($IsWindows) {
+  #           if (Test-Path "code.tar.gz") {
+  #             tar -xf code.tar.gz
+  #             Remove-Item code.tar.gz
+  #           } else {
+  #             $_
+  #             exit 1
+  #           }
+  #         } else {
+  #           tar -xzf code.tar.gz
+  #           rm code.tar.gz
+  #         }
 
-      - name: Get built EXE full path and save to EXE_FILE
-        shell: pwsh
-        run: |
-          $exe = Get-ChildItem "${{ matrix.artifact_path }}\..\" -Filter *.exe | Select-Object -First 1
-          if (-not $exe) {
-            Write-Error "No .exe file found in the runner directory."
-            exit 1
-          }
+  #     - name: Setup Go 1.24
+  #       if: runner.os == 'Windows'
+  #       uses: actions/setup-go@v5
+  #       with:
+  #         go-version: 1.24
 
-          $exePath = $exe.FullName
-          echo "EXE_FILE=$exePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+  #     - name: Install MinGW-w64
+  #       if: runner.os == 'Windows'
+  #       shell: pwsh
+  #       run: |
+  #         # 下载指定版本的MinGW-w64
+  #         Invoke-WebRequest -Uri "https://github.com/niXman/mingw-builds-binaries/releases/download/15.1.0-rt_v12-rev0/x86_64-15.1.0-release-posix-seh-ucrt-rt_v12-rev0.7z" -OutFile "mingw-w64.7z"
 
-          Write-Host "Found EXE full path: $exePath"
-      # Windows: 处理 artifact
-      - name: Prepare artifact (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          # mkdir -p test
-          # "123" | Out-File -FilePath "test\test3.txt"
-          # Compress-Archive -Path ".\test" -DestinationPath "D:\a\app\app\dist\a.zip" -Force
-          # #tar -zcvf .\dist\testwindows.tar.gz test
-          # ./mc.exe cp --debug --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
-          mkdir -p dist
+  #         # 创建目标文件夹
+  #         $mingwPath = "C:\a\mingw64"
+  #         if (!(Test-Path $mingwPath)) {
+  #             New-Item -Path $mingwPath -ItemType Directory
+  #         }
 
-          $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-          $os = "${{ matrix.platform }}"
-          $ext = "${{ matrix.artifact_ext }}"
-          $fileName = "${os}_${timestamp}.${ext}"
-          tar -zcvf .\dist\$fileName -C "${{ matrix.artifact_path }}" .
-          echo ${{ env.EXE_FILE }}
-          Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\dist\"
+  #         # 解压文件
+  #         7z x mingw-w64.7z -o"$mingwPath" -y
 
-      # 上传到 MinIO
-      - name: Upload to MinIO
-        shell: pwsh
-        run: |
-          if ($IsWindows) {
-            ./mc.exe cp  --recursive ".\dist\" "myminio/${{ secrets.MINIO_BUCKET }}/dist/"
-          } else {
-            mc cp --recursive ./dist/ myminio/${{ secrets.MINIO_BUCKET }}/dist/
-          }
+  #         # 设置环境变量
+  #         echo "MinGW_HOME=$mingwPath" >> $env:GITHUB_ENV
+  #         echo "$mingwPath\bin" >> $env:GITHUB_PATH
+
+  #         # 验证安装
+  #         gcc -v
+
+  #     - name: Compile libclash.dll
+  #       if: runner.os == 'Windows'
+  #       working-directory: clash_flt2/fclash
+  #       shell: pwsh
+  #       run: |
+  #         chmod a+x ./build_libclash_win.sh
+  #         bash ./build_libclash_win.sh
+  #         # echo (Resolve-Path "../../../").Path
+  #         # echo (Resolve-Path "../../").Path
+  #         # echo (Resolve-Path "${{ github.workspace }}/${{ env.APP_DIRNAME }}\windows\").Path
+
+  #         # Get-ChildItem dist
+  #         Copy-Item -Path "dist/libclash.dll" -Destination "${{ github.workspace }}\${{ env.APP_DIRNAME }}\windows\"
+  #         Get-ChildItem "${{ github.workspace }}\${{ env.APP_DIRNAME }}\windows\"
+  #         # Copy-Item -Path "dist/libclash.dll" -Destination "D:/a/app/app/app/windows/"
+  #         # Get-ChildItem "D:/a/app/app/app/windows/"
+  #     - name: Set up Flutter
+  #       uses: subosito/flutter-action@v2
+  #       with:
+  #         flutter-version: '3.24.5'
+  #         channel: "stable"
+
+  #     - name: Set up JDK 8
+  #       uses: actions/setup-java@v4
+  #       with:
+  #         distribution: 'temurin'
+  #         java-version: '17'
+  #     - name: Setup Android SDK
+  #       uses: android-actions/setup-android@v3
+
+  #     - name: Flutter pub get
+  #       run: |
+  #         flutter clean
+  #         flutter pub get
+  #         flutter pub run build_runner build
+  #       working-directory: ${{ env.APP_DIRNAME }}
+
+  #     - name: Build app
+  #       run: ${{ matrix.build_cmd }}
+  #       working-directory: ${{ env.APP_DIRNAME }}
+
+  #     # 非 Windows: 处理 artifact
+  #     - name: Prepare artifact (Unix/macOS)
+  #       if: runner.os != 'Windows'
+  #       shell: bash
+  #       run: |
+  #         mkdir -p dist
+  #         TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+  #         OS_NAME=${{ matrix.platform }}
+  #         FILE_NAME="${OS_NAME}_${TIMESTAMP}.${{ matrix.artifact_ext }}"
+
+  #         if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
+  #           cd "${{ matrix.artifact_path}}/.."
+  #           zip -r "../../../../../../dist/$FILE_NAME" "${APP_DIRNAME}.app"
+  #         else
+  #           cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
+  #         fi
+
+  #     - name: Install Inno Setup
+  #       if: runner.os == 'Windows'
+  #       run: |
+  #         $ErrorActionPreference = "Stop"
+  #         $url = "https://jrsoftware.org/download.php/is.exe"
+  #         $output = "$env:TEMP\innosetup.exe"
+  #         Invoke-WebRequest -Uri $url -OutFile $output
+  #         Start-Process -Wait -FilePath $output -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"
+  #         echo "C:\Program Files (x86)\Inno Setup 6" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+  #     - name: Download Inno Setup Simplified Chinese Language File
+  #       if: runner.os == 'Windows'
+  #       run: |
+  #         $ErrorActionPreference = "Stop"
+
+  #         $langDir = "C:\Program Files (x86)\Inno Setup 6\Languages"
+  #         if (!(Test-Path $langDir)) {
+  #           Write-Error "Inno Setup not found at expected path: $langDir"
+  #           exit 1
+  #         }
+
+  #         Invoke-WebRequest `
+  #           -Uri "https://raw.githubusercontent.com/kira-96/Inno-Setup-Chinese-Simplified-Translation/main/ChineseSimplified.isl" `
+  #           -OutFile "$langDir\ChineseSimplified.isl"
+
+  #         Write-Host "Downloaded ChineseSimplified.isl to $langDir"
+
+  #     - name: Inno Setup
+  #       shell: pwsh
+  #       run: |
+  #         ISCC.exe ${{ env.APP_DIRNAME }}\AssembleWinSetup.iss
+  #         Get-ChildItem "${{ matrix.artifact_path }}"
+
+  #     - name: Get built EXE full path and save to EXE_FILE
+  #       shell: pwsh
+  #       run: |
+  #         $exe = Get-ChildItem "${{ matrix.artifact_path }}\..\" -Filter *.exe | Select-Object -First 1
+  #         if (-not $exe) {
+  #           Write-Error "No .exe file found in the runner directory."
+  #           exit 1
+  #         }
+
+  #         $exePath = $exe.FullName
+  #         echo "EXE_FILE=$exePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+  #         Write-Host "Found EXE full path: $exePath"
+  #     # Windows: 处理 artifact
+  #     - name: Prepare artifact (Windows)
+  #       if: runner.os == 'Windows'
+  #       shell: pwsh
+  #       run: |
+  #         # mkdir -p test
+  #         # "123" | Out-File -FilePath "test\test3.txt"
+  #         # Compress-Archive -Path ".\test" -DestinationPath "D:\a\app\app\dist\a.zip" -Force
+  #         # #tar -zcvf .\dist\testwindows.tar.gz test
+  #         # ./mc.exe cp --debug --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/dist/"
+  #         mkdir -p dist
+
+  #         $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+  #         $os = "${{ matrix.platform }}"
+  #         $ext = "${{ matrix.artifact_ext }}"
+  #         $fileName = "${os}_${timestamp}.${ext}"
+  #         tar -zcvf .\dist\$fileName -C "${{ matrix.artifact_path }}" .
+  #         echo ${{ env.EXE_FILE }}
+  #         Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\dist\"
+
+  #     # 上传到 MinIO
+  #     - name: Upload to MinIO
+  #       shell: pwsh
+  #       run: |
+  #         if ($IsWindows) {
+  #           ./mc.exe cp  --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/dist/"
+  #         } else {
+  #           mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/dist/
+  #         }
