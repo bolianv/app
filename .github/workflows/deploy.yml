@@ -256,8 +256,8 @@ jobs:
           $os = "${{ matrix.platform }}"
           $ext = "${{ matrix.artifact_ext }}"
           $fileName = "${os}_${timestamp}.${ext}"
-          tar -zcvf .\dist\$fileName -C "${{ matrix.artifact_path }}" .
-          echo ${{ env.EXE_FILE }}
+          #tar -zcvf .\dist\$fileName -C "${{ matrix.artifact_path }}" .
+          #echo ${{ env.EXE_FILE }}
           Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\dist\"
 
       # 上传到 MinIO
@@ -265,7 +265,7 @@ jobs:
         shell: pwsh
         run: |
           if ($IsWindows) {
-            ./mc.exe cp  --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/dist/"
+            ./mc.exe cp  --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
           } else {
-            mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/dist/
+            mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
           }
