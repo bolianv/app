@@ -76,6 +76,7 @@ jobs:
       - name: Download code from MinIO
         shell: pwsh
         run: |
+          env
           if ($IsWindows) {
             try {
               ./mc.exe cp "myminio/${{ env.MINIO_BUCKET }}/source/vp/code.tar.gz" "./code.tar.gz"
