@@ -55,6 +55,7 @@ jobs:
         run: |
             echo "APP_DIGITAL_VERSION: ${{ env.APP_DIGITAL_VERSION }}"
             echo "APP_ICON: ${{ env.APP_ICON }}"
+            echo $env:APP_ICON
 
 #       - name: Setup MinIO client
 #         if: runner.os != 'Windows'
