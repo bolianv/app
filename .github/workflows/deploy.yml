@@ -111,8 +111,11 @@ jobs:
            pwd
            mkdir -p dist
            mkdir -p tmp
-           Get-ChildItem "."
-           Get-ChildItem ".\dist"
+           ls -al  "."
+           ls -al ".\dist"
+           ls -al ".\app\"
+           ls -al ".\app\assets\"
+           ls -al ".\app\assets\windows\"
            #Copy-Item -Path ".\app\assets\windows\使用说明.jpg" -Destination ".\tmp\"
            #Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\a.zip" -Force
 
