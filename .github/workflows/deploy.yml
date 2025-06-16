@@ -111,7 +111,7 @@ jobs:
            mkdir -p dist
            mkdir -p tmp
            Copy-Item -Path ".\app\assets\windows\*" -Destination ".\tmp\"
-           Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\a.zip" -Force
+           Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\windows_test.zip" -Force
            ls dist
 #
 #       - name: Setup Go 1.24
