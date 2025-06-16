@@ -266,7 +266,7 @@ jobs:
           if ($IsWindows) {
             "${{ env.APP_DIGITAL_VERSION }}" > .\vp_last_build_version
             ./mc.exe cp --debug --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
-            ./mc.exe cp  vp_last_build_version "myminio/${{ env.MINIO_BUCKET }}/release/"
+            ./mc.exe cp --debug vp_last_build_version "myminio/${{ env.MINIO_BUCKET }}/release/"
           } else {
             echo "${{ env.APP_DIGITAL_VERSION }}" > vp_last_build_version
             mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
