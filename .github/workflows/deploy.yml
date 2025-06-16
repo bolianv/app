@@ -252,7 +252,7 @@ jobs:
           Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\tmp\${newExe}"
           Copy-Item -Path ".\app\assets\windows\*" -Destination ".\tmp\"
           cd .\tmp
-          Compress-Archive -Path "." -DestinationPath ".\dist\${fileName}" -Force
+          Compress-Archive -Path "." -DestinationPath "..\dist\${fileName}" -Force
           #Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\dist\"
 
       # 上传到 MinIO
