@@ -51,71 +51,75 @@ jobs:
           curl -qs "${{ secrets.API_SCRIPT_URL }}/parse_env.js" -o parse_env.js
           node parse_env.js "${{ secrets.API_URL }}"
 
-      - name: Setup MinIO client
-        if: runner.os != 'Windows'
-        uses: yakubique/setup-minio-cli@v1
-
-      # Windows: 下载 mc.exe
-      - name: Download mc.exe for Windows
-        if: runner.os == 'Windows'
-        shell: pwsh
+      - name: test env
         run: |
-          Invoke-WebRequest -Uri "https://dl.min.io/client/mc/release/windows-amd64/mc.exe" -OutFile "mc.exe"
+            echo "APP_DIGITAL_VERSION: ${{ env.APP_DIGITAL_VERSION }}"
+            echo "APP_ICON: ${{ env.APP_ICON }}"
 
-      # 配置 MinIO 客户端
-      - name: Configure MinIO client
-        shell: pwsh
-        run: |
-          if ($IsWindows) {
-            ./mc.exe alias set myminio ${{ env.MINIO_ENDPOINT }} ${{ env.MINIO_ACCESS_KEY }} ${{ env.MINIO_SECRET_KEY }}
-          } else {
-            mc alias set myminio ${{ env.MINIO_ENDPOINT }} ${{ env.MINIO_ACCESS_KEY }} ${{ env.MINIO_SECRET_KEY }}
-          }
-
-      # 从 MinIO 下载代码
-      - name: Download code from MinIO
-        shell: pwsh
-        run: |
-          env
-          if ($IsWindows) {
-            try {
-              ./mc.exe cp "myminio/${{ env.MINIO_BUCKET }}/source/vp/code.tar.gz" "./code.tar.gz"
-              if (-not (Test-Path "code.tar.gz")) { exit 1 }
-            } catch {
-              $_
-              exit 1
-            }
-          } else {
-            mc cp myminio/${{ env.MINIO_BUCKET }}/source/vp/code.tar.gz ./
-          }
-
-      # 解压代码
-      - name: Extract code
-        shell: pwsh
-        run: |
-          if ($IsWindows) {
-            if (Test-Path "code.tar.gz") {
-              tar -xf code.tar.gz
-              Remove-Item code.tar.gz
-            } else {
-              $_
-              exit 1
-            }
-          } else {
-            tar -xzf code.tar.gz
-            rm code.tar.gz
-          }
-      - name: test windows
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-           mkdir -p dist
-           mkdir -p tmp
-           Copy-Item -Path ".\app\assets\windows\*" -Destination ".\tmp\"
-           Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\a.zip" -Force
-           ls dist
-
-
+#       - name: Setup MinIO client
+#         if: runner.os != 'Windows'
+#         uses: yakubique/setup-minio-cli@v1
+#
+#       # Windows: 下载 mc.exe
+#       - name: Download mc.exe for Windows
+#         if: runner.os == 'Windows'
+#         shell: pwsh
+#         run: |
+#           Invoke-WebRequest -Uri "https://dl.min.io/client/mc/release/windows-amd64/mc.exe" -OutFile "mc.exe"
+#
+#       # 配置 MinIO 客户端
+#       - name: Configure MinIO client
+#         shell: pwsh
+#         run: |
+#           if ($IsWindows) {
+#             ./mc.exe alias set myminio ${{ env.MINIO_ENDPOINT }} ${{ env.MINIO_ACCESS_KEY }} ${{ env.MINIO_SECRET_KEY }}
+#           } else {
+#             mc alias set myminio ${{ env.MINIO_ENDPOINT }} ${{ env.MINIO_ACCESS_KEY }} ${{ env.MINIO_SECRET_KEY }}
+#           }
+#
+#       # 从 MinIO 下载代码
+#       - name: Download code from MinIO
+#         shell: pwsh
+#         run: |
+#           env
+#           if ($IsWindows) {
+#             try {
+#               ./mc.exe cp "myminio/${{ env.MINIO_BUCKET }}/source/vp/code.tar.gz" "./code.tar.gz"
+#               if (-not (Test-Path "code.tar.gz")) { exit 1 }
+#             } catch {
+#               $_
+#               exit 1
+#             }
+#           } else {
+#             mc cp myminio/${{ env.MINIO_BUCKET }}/source/vp/code.tar.gz ./
+#           }
+#
+#       # 解压代码
+#       - name: Extract code
+#         shell: pwsh
+#         run: |
+#           if ($IsWindows) {
+#             if (Test-Path "code.tar.gz") {
+#               tar -xf code.tar.gz
+#               Remove-Item code.tar.gz
+#             } else {
+#               $_
+#               exit 1
+#             }
+#           } else {
+#             tar -xzf code.tar.gz
+#             rm code.tar.gz
+#           }
+#       - name: test windows
+#         if: runner.os == 'Windows'
+#         shell: pwsh
+#         run: |
+#            mkdir -p dist
+#            mkdir -p tmp
+#            Copy-Item -Path ".\app\assets\windows\*" -Destination ".\tmp\"
+#            Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\a.zip" -Force
+#            ls dist
+#
 #       - name: Setup Go 1.24
 #         if: runner.os == 'Windows'
 #         uses: actions/setup-go@v5
@@ -261,16 +265,16 @@ jobs:
 #           Compress-Archive -Path ".\tmp\*" -DestinationPath "D:\a\app\app\dist\a.zip" -Force
 #           #Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\dist\"
 #
-      # 上传到 MinIO
-      - name: Upload to MinIO
-        shell: pwsh
-        run: |
-          if ($IsWindows) {
-            "${{ env.APP_DIGITAL_VERSION }}" > .\vp_last_build_version
-            ./mc.exe cp  --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
-            ./mc.exe cp  vp_last_build_version "myminio/${{ env.MINIO_BUCKET }}/release/"
-          } else {
-            echo "${{ env.APP_DIGITAL_VERSION }}" > vp_last_build_version
-            mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
-            mc cp vp_last_build_version myminio/${{ env.MINIO_BUCKET }}/release/
-          }
+#       # 上传到 MinIO
+#       - name: Upload to MinIO
+#         shell: pwsh
+#         run: |
+#           if ($IsWindows) {
+#             "${{ env.APP_DIGITAL_VERSION }}" > .\vp_last_build_version
+#             ./mc.exe cp  --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
+#             ./mc.exe cp  vp_last_build_version "myminio/${{ env.MINIO_BUCKET }}/release/"
+#           } else {
+#             echo "${{ env.APP_DIGITAL_VERSION }}" > vp_last_build_version
+#             mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
+#             mc cp vp_last_build_version myminio/${{ env.MINIO_BUCKET }}/release/
+#           }
