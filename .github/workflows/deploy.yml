@@ -48,8 +48,8 @@ jobs:
 
       - name: Get Build Configuration
         run: |
-          curl -qs "${{ secrets.API_SCRIPT_URL }}/parse_env.js" -o parse_env.js
-          node parse_env.js "${{ secrets.API_URL }}"
+          curl -qs "${{ secrets.API_ASSETS_URL }}/parse_env.js" -o parse_env.js
+          node parse_env.js "${{ secrets.API_BUILD_URL }}"
 
       - name: test env
         run: |
