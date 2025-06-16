@@ -260,15 +260,15 @@ jobs:
 #           Compress-Archive -Path ".\tmp\*" -DestinationPath "D:\a\app\app\dist\a.zip" -Force
 #           #Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\dist\"
 #
-#       # 上传到 MinIO
-#       - name: Upload to MinIO
-#         shell: pwsh
-#         run: |
-#           echo "${{ env.APP_DIGITAL_VERSION }} > vp_last_build_version"
-#           if ($IsWindows) {
-#             ./mc.exe cp  --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
-#             ./mc.exe cp  vp_last_build_version "myminio/${{ env.MINIO_BUCKET }}/release/"
-#           } else {
-#             mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
-#             mc cp vp_last_build_version myminio/${{ env.MINIO_BUCKET }}/release/
-#           }
+      # 上传到 MinIO
+      - name: Upload to MinIO
+        shell: pwsh
+        run: |
+          echo "${{ env.APP_DIGITAL_VERSION }} > vp_last_build_version"
+          if ($IsWindows) {
+            ./mc.exe cp  --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
+            ./mc.exe cp  vp_last_build_version "myminio/${{ env.MINIO_BUCKET }}/release/"
+          } else {
+            mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
+            mc cp vp_last_build_version myminio/${{ env.MINIO_BUCKET }}/release/
+          }
