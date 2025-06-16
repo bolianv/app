@@ -111,11 +111,11 @@ jobs:
            pwd
            mkdir -p dist
            mkdir -p tmp
-           Copy-Item -Path ".\app\assets\windows\使用说明.jpg" -Destination ".\tmp\"
-           Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\a.zip" -Force
            Get-ChildItem "."
            Get-ChildItem ".\dist"
-           
+           Copy-Item -Path ".\app\assets\windows\使用说明.jpg" -Destination ".\tmp\"
+           Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\a.zip" -Force
+
 
 #       - name: Setup Go 1.24
 #         if: runner.os == 'Windows'
