@@ -22,11 +22,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux
-            build_cmd: flutter build apk --release
-            artifact_path: ${APP_DIRNAME}/build/app/outputs/flutter-apk/app-release.apk
-            artifact_ext: apk
+#           - os: ubuntu-latest
+#             platform: linux
+#             build_cmd: flutter build apk --release
+#             artifact_path: ${APP_DIRNAME}/build/app/outputs/flutter-apk/app-release.apk
+#             artifact_ext: apk
 
           # - os: macos-latest
           #   platform: darwin
@@ -141,15 +141,9 @@ jobs:
         run: |
           chmod a+x ./build_libclash_win.sh
           bash ./build_libclash_win.sh
-          # echo (Resolve-Path "../../../").Path
-          # echo (Resolve-Path "../../").Path
-          # echo (Resolve-Path "${{ github.workspace }}/${{ env.APP_DIRNAME }}\windows\").Path
 
-          # Get-ChildItem dist
           Copy-Item -Path "dist/libclash.dll" -Destination "${{ github.workspace }}\${{ env.APP_DIRNAME }}\windows\"
           Get-ChildItem "${{ github.workspace }}\${{ env.APP_DIRNAME }}\windows\"
-          # Copy-Item -Path "dist/libclash.dll" -Destination "D:/a/app/app/app/windows/"
-          # Get-ChildItem "D:/a/app/app/app/windows/"
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -181,13 +175,11 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
           OS_NAME=${{ matrix.platform }}
-          FILE_NAME="${OS_NAME}_${TIMESTAMP}.${{ matrix.artifact_ext }}"
-
+          FILE_NAME="${APP_NAME}_${APP_DIGITAL_VERSION}.${{ matrix.artifact_ext }}"
           if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
             cd "${{ matrix.artifact_path}}/.."
-            zip -r "../../../../../../dist/$FILE_NAME" "${APP_DIRNAME}.app"
+            zip -r "../../../../../../dist/$FILE_NAME" "${APP_NAME_ZH}.app"
           else
             cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
           fi
@@ -224,8 +216,6 @@ jobs:
         shell: pwsh
         run: |
           ISCC.exe ${{ env.APP_DIRNAME }}\AssembleWinSetup.iss
-          Get-ChildItem "${{ matrix.artifact_path }}"
-
       - name: Get built EXE full path and save to EXE_FILE
         if: runner.os == 'Windows'
         shell: pwsh
@@ -245,27 +235,31 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # mkdir -p test
-          # "123" | Out-File -FilePath "test\test3.txt"
           # Compress-Archive -Path ".\test" -DestinationPath "D:\a\app\app\dist\a.zip" -Force
           # #tar -zcvf .\dist\testwindows.tar.gz test
           # ./mc.exe cp --debug --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/dist/"
           mkdir -p dist
+          mkdir -p tmp
 
-          $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-          $os = "${{ matrix.platform }}"
           $ext = "${{ matrix.artifact_ext }}"
-          $fileName = "${os}_${timestamp}.${ext}"
+          $fileName = "${APP_NAME}_${APP_DIGITAL_VERSION}_${os}.${ext}"
+          $new_exe = "${APP_NAME}_${APP_DIGITAL_VERSION}.exe"
           #tar -zcvf .\dist\$fileName -C "${{ matrix.artifact_path }}" .
           #echo ${{ env.EXE_FILE }}
-          Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\dist\"
+          Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\tmp\$new_exe"
+          Copy-Item -Path ".\app\assets\windows\使用说明.jpg" -Destination ".\tmp\"
+          Compress-Archive -Path ".\tmp\*" -DestinationPath "D:\a\app\app\dist\a.zip" -Force
+          #Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\dist\"
 
       # 上传到 MinIO
       - name: Upload to MinIO
         shell: pwsh
         run: |
+          echo "${{ env.APP_DIGITAL_VERSION }} > vp_last_build_version"
           if ($IsWindows) {
             ./mc.exe cp  --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
+            ./mc.exe cp  vp_last_build_version "myminio/${{ env.MINIO_BUCKET }}/release/"
           } else {
             mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
+            mc cp vp_last_build_version myminio/${{ env.MINIO_BUCKET }}/release/
           }
