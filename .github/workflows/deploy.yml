@@ -189,7 +189,15 @@ jobs:
       - name: Build app
         run: |
           ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
-          ls  .\app\build\windows\x64\runner\Release
+          ls  .\app
+          echo "==="
+          ls  .\app\build
+          echo "==="
+          ls  .\app\build\windows
+          echo "==="
+          ls  .\app\build\windows\x64
+          echo "==="
+#           ls  .\app\build\windows\x64\runner\Release
 #       # 非 Windows: 处理 artifact
 #       - name: Prepare artifact (Unix/macOS)
 #         if: runner.os != 'Windows'
