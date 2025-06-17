@@ -32,11 +32,11 @@ jobs:
 #             build_cmd: flutter build macos --release
 #             artifact_path: ${APP_DIRNAME}/build/macos/Build/Products/Release/${APP_DIRNAME}.app
 #             artifact_ext: zip
-#           - os: windows-latest
-#             platform: windows
-#             build_cmd: flutter build windows --release --verbose
-#             artifact_path: $env:APP_DIRNAME\build\windows\x64\runner\Release
-#             artifact_ext: zip
+          - os: windows-latest
+            platform: windows
+            build_cmd: flutter build windows --release --verbose
+            artifact_path: $env:APP_DIRNAME\build\windows\x64\runner\Release
+            artifact_ext: zip
 
     steps:
       - name: Setup Node.js
