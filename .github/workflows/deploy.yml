@@ -241,11 +241,11 @@ jobs:
         shell: pwsh
         run: |
           if ($IsWindows) {
-            "${{ env.APP_DIGITAL_VERSION }}" > .\vp_last_build_version
+            "${{ env.APP_DIGITAL_VERSION }}" > .\${{ env.APP_NAME }}_last_build_version
             ./mc.exe cp --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
             ./mc.exe cp "${{ env.APP_NAME }}_last_build_version" "myminio/${{ env.MINIO_BUCKET }}/release/"
           } else {
-            echo "${{ env.APP_DIGITAL_VERSION }}" > vp_last_build_version
+            echo "${{ env.APP_DIGITAL_VERSION }}" > ${{ env.APP_NAME }}_last_build_version
             mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
             mc cp "${{ env.APP_NAME }}_last_build_version" myminio/${{ env.MINIO_BUCKET }}/release/
           }
