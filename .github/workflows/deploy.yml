@@ -188,8 +188,8 @@ jobs:
 
       - name: Build app
         run: |
-            ls .
-          #./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
+          ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
+          ls .
 
 #           ls  .\app
 #           echo "==="
