@@ -107,35 +107,33 @@ jobs:
           mv app base_app
           curl -qs "${{ secrets.API_ASSETS_URL }}/build.sh" -o ./base_app/.gitea/workflows/assets/build.sh
           chmod a+x ./base_app/.gitea/workflows/assets/build.sh
+      - name: Install MinGW-w64
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # 下载指定版本的MinGW-w64
+          Invoke-WebRequest -Uri "https://github.com/niXman/mingw-builds-binaries/releases/download/15.1.0-rt_v12-rev0/x86_64-15.1.0-release-posix-seh-ucrt-rt_v12-rev0.7z" -OutFile "mingw-w64.7z"
+
+          # 创建目标文件夹
+          $mingwPath = "C:\a\mingw64"
+          if (!(Test-Path $mingwPath)) {
+              New-Item -Path $mingwPath -ItemType Directory
+          }
+
+          # 解压文件
+          7z x mingw-w64.7z -o"$mingwPath" -y
+
+          # 设置环境变量
+          echo "MinGW_HOME=$mingwPath" >> $env:GITHUB_ENV
+          echo "$mingwPath\bin" >> $env:GITHUB_PATH
+
+          # 验证安装
+          gcc -v
 #       - name: Setup Go 1.24
 #         if: runner.os == 'Windows'
 #         uses: actions/setup-go@v5
 #         with:
 #           go-version: 1.24
-#
-#       - name: Install MinGW-w64
-#         if: runner.os == 'Windows'
-#         shell: pwsh
-#         run: |
-#           # 下载指定版本的MinGW-w64
-#           Invoke-WebRequest -Uri "https://github.com/niXman/mingw-builds-binaries/releases/download/15.1.0-rt_v12-rev0/x86_64-15.1.0-release-posix-seh-ucrt-rt_v12-rev0.7z" -OutFile "mingw-w64.7z"
-#
-#           # 创建目标文件夹
-#           $mingwPath = "C:\a\mingw64"
-#           if (!(Test-Path $mingwPath)) {
-#               New-Item -Path $mingwPath -ItemType Directory
-#           }
-#
-#           # 解压文件
-#           7z x mingw-w64.7z -o"$mingwPath" -y
-#
-#           # 设置环境变量
-#           echo "MinGW_HOME=$mingwPath" >> $env:GITHUB_ENV
-#           echo "$mingwPath\bin" >> $env:GITHUB_PATH
-#
-#           # 验证安装
-#           gcc -v
-#
 #       - name: Compile libclash.dll
 #         if: runner.os == 'Windows'
 #         working-directory: clash_flt2/fclash
