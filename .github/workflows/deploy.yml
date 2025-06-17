@@ -237,8 +237,7 @@ jobs:
         run: |
           mkdir -p dist
           mkdir -p tmp
-          ls .
-          #ls .\app\assets\windows\
+          ls .\app\assets\windows\
 
           $ext = "${{ matrix.artifact_ext }}"
           $fileName = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}_${{ matrix.platform }}.${ext}"
