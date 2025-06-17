@@ -247,12 +247,11 @@ jobs:
           mkdir -p tmp
 
           $ext = "${{ matrix.artifact_ext }}"
-          $fileName = "${APP_NAME}_${APP_DIGITAL_VERSION}_${os}.${ext}"
-          $newExe = "${APP_NAME}_${APP_DIGITAL_VERSION}.exe"
+          $fileName = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}_${{ matrix.platform }}.${ext}"
+          $newExe = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}.exe"
           Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\tmp\${newExe}"
           Copy-Item -Path ".\app\assets\windows\*" -Destination ".\tmp\"
-          cd .\tmp
-          Compress-Archive -Path "." -DestinationPath "..\dist\${fileName}" -Force
+          Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\${fileName}" -Force
           #Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\dist\"
 
       # 上传到 MinIO
