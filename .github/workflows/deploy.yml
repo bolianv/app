@@ -234,12 +234,10 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          #$OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
-          #chcp 65001
-          chcp 936
           mkdir -p dist
           mkdir -p tmp
-          ls .\app\assets\windows\
+          ls .
+          #ls .\app\assets\windows\
 
           $ext = "${{ matrix.artifact_ext }}"
           $fileName = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}_${{ matrix.platform }}.${ext}"
