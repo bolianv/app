@@ -240,7 +240,7 @@ jobs:
           $ext = "${{ matrix.artifact_ext }}"
           $fileName = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}_${{ matrix.platform }}.${ext}"
           $newExe = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}.exe"
-#           Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\tmp\${newExe}"
+          #Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\tmp\${newExe}"
           Copy-Item -Path ".\app\assets\windows\*" -Destination ".\tmp\"
           Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\${fileName}" -Force
 
