@@ -94,8 +94,8 @@ jobs:
             if (Test-Path "code.tar.gz") {
               7z x code.tar.gz
               7z x code.tar
-              #tar -xf code.tar.gz
               Remove-Item code.tar.gz
+              Remove-Item code.tar
             } else {
               $_
               exit 1
@@ -188,7 +188,7 @@ jobs:
         shell: bash
         run: |
           ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
-          ls  .\app\build\windows\x64\runner\Release
+          ls -al ./app/build/windows/x64/runner/Release/*
 #       # 非 Windows: 处理 artifact
 #       - name: Prepare artifact (Unix/macOS)
 #         if: runner.os != 'Windows'
