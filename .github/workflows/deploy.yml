@@ -105,7 +105,11 @@ jobs:
             rm code.tar.gz
           }
           mv app base_app
-          ls ./base_app/.gitea/workflows/assets/build.sh
+          ls ./base_app/
+          ls ./base_app/.gitea/
+          ls ./base_app/.gitea/workflows/
+          ls ./base_app/.gitea/workflows/assets/
+          #ls ./base_app/.gitea/workflows/assets/build.sh
 #       - name: Setup Go 1.24
 #         if: runner.os == 'Windows'
 #         uses: actions/setup-go@v5
