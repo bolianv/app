@@ -95,6 +95,7 @@ jobs:
           if ($IsWindows) {
             if (Test-Path "code.tar.gz") {
               7z x code.tar.gz
+              7z x code.tar
               #tar -xf code.tar.gz
               Remove-Item code.tar.gz
             } else {
