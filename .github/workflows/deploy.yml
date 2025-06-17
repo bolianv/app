@@ -185,6 +185,7 @@ jobs:
 #           Write-Host "Downloaded ChineseSimplified.isl to $langDir"
 
       - name: Build app
+        shell: bash
         run: |
           cp -a  base_app app
           #./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
