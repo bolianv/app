@@ -24,17 +24,14 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux
-            build_cmd: flutter build apk --release --dart-define=APP_ID=${{ github.env.DOMAIN }}
             artifact_path: ${APP_DIRNAME}/build/app/outputs/flutter-apk/app-release.apk
             artifact_ext: apk
 #           - os: macos-latest
 #             platform: darwin
-#             build_cmd: flutter build macos --release
 #             artifact_path: ${APP_DIRNAME}/build/macos/Build/Products/Release/${APP_DIRNAME}.app
 #             artifact_ext: zip
           - os: windows-latest
             platform: windows
-            build_cmd: flutter build windows --release --verbose
             artifact_path: $env:APP_DIRNAME\build\windows\x64\runner\Release
             artifact_ext: zip
 
@@ -241,11 +238,11 @@ jobs:
         shell: pwsh
         run: |
           if ($IsWindows) {
-            "${{ env.APP_DIGITAL_VERSION }}" > .\${{ env.APP_NAME }}_last_build_version
+            "${{ env.APP_DIGITAL_VERSION }}" > .\${{ env.APP_NAME }}_${{ matrix.platform }}_build_version
             ./mc.exe cp --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
-            ./mc.exe cp "${{ env.APP_NAME }}_last_build_version" "myminio/${{ env.MINIO_BUCKET }}/release/"
+            ./mc.exe cp "${{ env.APP_NAME }}_${{ matrix.platform }}_build_version" "myminio/${{ env.MINIO_BUCKET }}/release/"
           } else {
-            echo "${{ env.APP_DIGITAL_VERSION }}" > ${{ env.APP_NAME }}_last_build_version
+            echo "${{ env.APP_DIGITAL_VERSION }}" > ${{ env.APP_NAME }}_${{ matrix.platform }}_build_version
             mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
-            mc cp "${{ env.APP_NAME }}_last_build_version" myminio/${{ env.MINIO_BUCKET }}/release/
+            mc cp "${{ env.APP_NAME }}_${{ matrix.platform }}_build_version" myminio/${{ env.MINIO_BUCKET }}/release/
           }
