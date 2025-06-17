@@ -233,8 +233,9 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
-          chcp 65001
+          #$OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+          #chcp 65001
+          chcp 936
           mkdir -p dist
           mkdir -p tmp
           ls .\app\assets\windows\
