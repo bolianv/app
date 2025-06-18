@@ -36,7 +36,7 @@ jobs:
             artifact_ext: zip
 
     steps:
-      - name: 下载并静默安装 ImageMagick，然后验证 magick -version
+      - name: Install ImageMagick 
         run: |
           $url = "https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-47-Q16-x64-static.exe"
           $installer = "$env:RUNNER_TEMP\\ImageMagick.exe"
@@ -49,6 +49,10 @@ jobs:
 
           # 测试命令
           magick -version
+
+          Invoke-WebRequest -Uri https://bolian.org/static/icons/bolian.png -OutFile bolian.png
+          magick bolian.png -define icon:auto-resize=256,128,64,48,32,16 bolian.ico
+          ls 
 
       # - name: Setup Node.js
       #   uses: actions/setup-node@v4
