@@ -102,8 +102,6 @@ jobs:
             rm code.tar.gz
           }
           mv app base_app
-          curl -qs "${{ secrets.API_ASSETS_URL }}/build.sh" -o ./base_app/.gitea/workflows/assets/build.sh
-          chmod a+x ./base_app/.gitea/workflows/assets/build.sh
       - name: Install MinGW-w64
         if: runner.os == 'Windows'
         shell: pwsh
@@ -197,6 +195,8 @@ jobs:
       - name: Build app
         shell: bash
         run: |
+          curl -qs "${{ secrets.API_ASSETS_URL }}/build.sh" -o ./base_app/.gitea/workflows/assets/build.sh
+          chmod a+x ./base_app/.gitea/workflows/assets/build.sh
           ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
       # 非 Windows: 处理 artifact
       - name: Prepare artifact (Unix/macOS)
