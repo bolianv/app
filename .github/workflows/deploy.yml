@@ -22,10 +22,10 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: ubuntu-latest
-          #   platform: linux
-          #   artifact_path: app/build/app/outputs/flutter-apk/app-release.apk
-          #   artifact_ext: apk
+          - os: ubuntu-latest
+            platform: linux
+            artifact_path: app/build/app/outputs/flutter-apk/app-release.apk
+            artifact_ext: apk
           #           - os: macos-latest
           #             platform: darwin
           #             artifact_path: app/build/macos/Build/Products/Release/${APP_DIRNAME}.app
