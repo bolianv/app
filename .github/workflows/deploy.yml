@@ -152,32 +152,32 @@ jobs:
           java-version: "17"
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-#       - name: Install Inno Setup
-#         if: runner.os == 'Windows'
-#         run: |
-#           $ErrorActionPreference = "Stop"
-#           $url = "https://jrsoftware.org/download.php/is.exe"
-#           $output = "$env:TEMP\innosetup.exe"
-#           Invoke-WebRequest -Uri $url -OutFile $output
-#           Start-Process -Wait -FilePath $output -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"
-#           echo "C:\Program Files (x86)\Inno Setup 6" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-#
-#       - name: Download Inno Setup Simplified Chinese Language File
-#         if: runner.os == 'Windows'
-#         run: |
-#           $ErrorActionPreference = "Stop"
-#
-#           $langDir = "C:\Program Files (x86)\Inno Setup 6\Languages"
-#           if (!(Test-Path $langDir)) {
-#             Write-Error "Inno Setup not found at expected path: $langDir"
-#             exit 1
-#           }
-#
-#           Invoke-WebRequest `
-#             -Uri "https://raw.githubusercontent.com/kira-96/Inno-Setup-Chinese-Simplified-Translation/main/ChineseSimplified.isl" `
-#             -OutFile "$langDir\ChineseSimplified.isl"
-#
-#           Write-Host "Downloaded ChineseSimplified.isl to $langDir"
+      - name: Install Inno Setup
+        if: runner.os == 'Windows'
+        run: |
+          $ErrorActionPreference = "Stop"
+          $url = "https://jrsoftware.org/download.php/is.exe"
+          $output = "$env:TEMP\innosetup.exe"
+          Invoke-WebRequest -Uri $url -OutFile $output
+          Start-Process -Wait -FilePath $output -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"
+          echo "C:\Program Files (x86)\Inno Setup 6" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Download Inno Setup Simplified Chinese Language File
+        if: runner.os == 'Windows'
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $langDir = "C:\Program Files (x86)\Inno Setup 6\Languages"
+          if (!(Test-Path $langDir)) {
+            Write-Error "Inno Setup not found at expected path: $langDir"
+            exit 1
+          }
+
+          Invoke-WebRequest `
+            -Uri "https://raw.githubusercontent.com/kira-96/Inno-Setup-Chinese-Simplified-Translation/main/ChineseSimplified.isl" `
+            -OutFile "$langDir\ChineseSimplified.isl"
+
+          Write-Host "Downloaded ChineseSimplified.isl to $langDir"
 
       - name: Install ImageMagick
         if: runner.os == 'Windows'
@@ -199,65 +199,65 @@ jobs:
           curl -qs "${{ secrets.API_ASSETS_URL }}/build.sh" -o ./base_app/.gitea/workflows/assets/build.sh
           chmod a+x ./base_app/.gitea/workflows/assets/build.sh
           ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
-          ls -al app/build/windows/x64/runner/Release
-#       # 非 Windows: 处理 artifact
-#       - name: Prepare artifact (Unix/macOS)
-#         if: runner.os != 'Windows'
-#         shell: bash
-#         run: |
-#           mkdir -p dist
-#           OS_NAME=${{ matrix.platform }}
-#           FILE_NAME="${APP_NAME}_${APP_DIGITAL_VERSION}.${{ matrix.artifact_ext }}"
-#           if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
-#             cd "${{ matrix.artifact_path}}/.."
-#             zip -r "../../../../../../dist/$FILE_NAME" "${APP_NAME_ZH}.app"
-#           else
-#             cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
-#           fi
-#       - name: Inno Setup
-#         if: runner.os == 'Windows'
-#         shell: pwsh
-#         run: |
-#           ISCC.exe /DMyAppExeName="${{ env.APP_NAME_ZH }}.exe" /DMyAppVersion="${{ env.APP_VERSION }}" /DMyAppName="${{ env.APP_NAME_ZH }}" .\app\AssembleWinSetup.iss
-#       - name: Get built EXE full path and save to EXE_FILE
-#         if: runner.os == 'Windows'
-#         shell: pwsh
-#         run: |
-#           $exe = Get-ChildItem "${{ matrix.artifact_path }}\..\" -Filter *.exe | Select-Object -First 1
-#           if (-not $exe) {
-#             Write-Error "No .exe file found in the runner directory."
-#             exit 1
-#           }
-#
-#           $exePath = $exe.FullName
-#           echo "EXE_FILE=$exePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-#
-#           Write-Host "Found EXE full path: $exePath"
-#
-#       # Windows: 处理 artifact
-#       - name: Prepare artifact (Windows)
-#         if: runner.os == 'Windows'
-#         shell: pwsh
-#         run: |
-#           mkdir -p dist
-#           mkdir -p tmp
-#
-#           $ext = "${{ matrix.artifact_ext }}"
-#           $fileName = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}_${{ matrix.platform }}.${ext}"
-#           $newExe = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}.exe"
-#           Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\tmp\${newExe}"
-#           Copy-Item -Path ".\app\assets\windows\*" -Destination ".\tmp\"
-#           Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\${fileName}" -Force
-#       # 上传到 MinIO
-#       - name: Upload to MinIO
-#         shell: pwsh
-#         run: |
-#           if ($IsWindows) {
-#             "${{ env.APP_DIGITAL_VERSION }}" > .\${{ env.APP_NAME }}_${{ matrix.platform }}_build_version
-#             ./mc.exe cp --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
-#             ./mc.exe cp "${{ env.APP_NAME }}_${{ matrix.platform }}_build_version" "myminio/${{ env.MINIO_BUCKET }}/release/"
-#           } else {
-#             echo "${{ env.APP_DIGITAL_VERSION }}" > ${{ env.APP_NAME }}_${{ matrix.platform }}_build_version
-#             mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
-#             mc cp "${{ env.APP_NAME }}_${{ matrix.platform }}_build_version" myminio/${{ env.MINIO_BUCKET }}/release/
-#           }
+      # 非 Windows: 处理 artifact
+      - name: Prepare artifact (Unix/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist
+          OS_NAME=${{ matrix.platform }}
+          FILE_NAME="${APP_NAME}_${APP_DIGITAL_VERSION}.${{ matrix.artifact_ext }}"
+          if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
+            cd "${{ matrix.artifact_path}}/.."
+            zip -r "../../../../../../dist/$FILE_NAME" "${APP_NAME_ZH}.app"
+          else
+            cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
+          fi
+      - name: Inno Setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cp ".\app\build\windows\x64\runner\Release\vp.exe" ".\app\build\windows\x64\runner\Release\${{ env.APP_NAME_ZH }}.exe"
+          ISCC.exe /DMyAppExeName="${{ env.APP_NAME_ZH }}.exe" /DMyAppVersion="${{ env.APP_VERSION }}" /DMyAppName="${{ env.APP_NAME_ZH }}" .\app\AssembleWinSetup.iss
+      - name: Get built EXE full path and save to EXE_FILE
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem "${{ matrix.artifact_path }}\..\" -Filter *.exe | Select-Object -First 1
+          if (-not $exe) {
+            Write-Error "No .exe file found in the runner directory."
+            exit 1
+          }
+
+          $exePath = $exe.FullName
+          echo "EXE_FILE=$exePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          Write-Host "Found EXE full path: $exePath"
+
+      # Windows: 处理 artifact
+      - name: Prepare artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          mkdir -p dist
+          mkdir -p tmp
+
+          $ext = "${{ matrix.artifact_ext }}"
+          $fileName = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}_${{ matrix.platform }}.${ext}"
+          $newExe = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}.exe"
+          Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\tmp\${newExe}"
+          Copy-Item -Path ".\app\assets\windows\*" -Destination ".\tmp\"
+          Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\${fileName}" -Force
+      # 上传到 MinIO
+      - name: Upload to MinIO
+        shell: pwsh
+        run: |
+          if ($IsWindows) {
+            "${{ env.APP_DIGITAL_VERSION }}" > .\${{ env.APP_NAME }}_${{ matrix.platform }}_build_version
+            ./mc.exe cp --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
+            ./mc.exe cp "${{ env.APP_NAME }}_${{ matrix.platform }}_build_version" "myminio/${{ env.MINIO_BUCKET }}/release/"
+          } else {
+            echo "${{ env.APP_DIGITAL_VERSION }}" > ${{ env.APP_NAME }}_${{ matrix.platform }}_build_version
+            mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
+            mc cp "${{ env.APP_NAME }}_${{ matrix.platform }}_build_version" myminio/${{ env.MINIO_BUCKET }}/release/
+          }
