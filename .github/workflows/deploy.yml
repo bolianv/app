@@ -180,6 +180,9 @@ jobs:
           Write-Host "Downloaded ChineseSimplified.isl to $langDir"
 
       - name: Install ImageMagick
+        if: runner.os != 'Windows'
+        uses: mfinelli/setup-imagemagick@v6
+      - name: Install ImageMagick
         if: runner.os == 'Windows'
         run: |
           $url = "https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-47-Q16-x64-static.exe"
