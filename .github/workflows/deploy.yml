@@ -217,7 +217,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cp ".\app\build\windows\x64\runner\Release\vp.exe" ".\app\build\windows\x64\runner\Release\${{ env.APP_NAME_ZH }}.exe"
+          mv ".\app\build\windows\x64\runner\Release\vp.exe" ".\app\build\windows\x64\runner\Release\${{ env.APP_NAME_ZH }}.exe"
           ISCC.exe /DMyAppExeName="${{ env.APP_NAME_ZH }}.exe" /DMyAppVersion="${{ env.APP_VERSION }}" /DMyAppName="${{ env.APP_NAME_ZH }}" .\app\AssembleWinSetup.iss
       - name: Get built EXE full path and save to EXE_FILE
         if: runner.os == 'Windows'
