@@ -202,6 +202,10 @@ jobs:
           curl -qs "${{ secrets.API_ASSETS_URL }}/build.sh" -o ./base_app/.gitea/workflows/assets/build.sh
           chmod a+x ./base_app/.gitea/workflows/assets/build.sh
           ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
+      - name: Build app2
+        shell: bash
+        run: |
+          APP_NAME=test APP_NAME_ZH=测试 APP_VERSION=1.1.1 APP_DOMAIN=google.com ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
       # 非 Windows: 处理 artifact
       - name: Prepare artifact (Unix/macOS)
         if: runner.os != 'Windows'
