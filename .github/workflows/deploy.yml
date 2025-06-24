@@ -1,7 +1,6 @@
 name: Build Apps
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
@@ -17,10 +16,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: apk
-            artifact_path: build/app/outputs/flutter-apk/app-release.apk
-            artifact_ext: apk
+#           - os: ubuntu-latest
+#             platform: apk
+#             artifact_path: build/app/outputs/flutter-apk/app-release.apk
+#             artifact_ext: apk
           #           - os: macos-latest
           #             platform: macos
           #             artifact_path: build/macos/Build/Products/Release/${APP_DIRNAME}.app
@@ -62,6 +61,13 @@ jobs:
           } else {
             mc alias set myminio ${{ env.MINIO_ENDPOINT }} ${{ env.MINIO_ACCESS_KEY }} ${{ env.MINIO_SECRET_KEY }}
           }
+
+      - name: test
+        shell: bash
+        run: |
+            mkdir -p test/t1/a/b/c
+            #touch  test/t1/a/b/c/app.apk
+            #timeout 10 mc cp --recursive "test/t1/a/b/c/" "myminio/${MINIO_BUCKET}/release/vp/"
 
       # 从 MinIO 下载代码
       - name: Download code from MinIO
@@ -135,6 +141,7 @@ jobs:
           bash ./build_libclash_win.sh
 
           Copy-Item -Path "dist/libclash.dll" -Destination "${{ github.workspace }}\base_app\windows\"
+          #ls "${{ github.workspace }}\base_app\windows\"
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -198,5 +205,6 @@ jobs:
           ARTIFACT_PATH: "${{ matrix.artifact_path }}"
           ARTIFACT_EXT: "${{ matrix.artifact_ext }}"
         run: |
+          curl -qs "${{ secrets.API_ASSETS_URL }}/build.sh" -o ./base_app/.gitea/workflows/assets/build.sh
           chmod a+x ./base_app/.gitea/workflows/assets/build.sh
-          ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }} > /dev/null
+          ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
