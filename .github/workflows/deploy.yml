@@ -1,12 +1,6 @@
 name: Build Apps
 
 on:
-  workflow_dispatch:
-    inputs:
-      url:
-        description: "要处理的URL"
-        required: false
-        default: ""
   push:
     branches:
       - main
@@ -23,16 +17,16 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            platform: linux
-            artifact_path: app/build/app/outputs/flutter-apk/app-release.apk
+            platform: apk
+            artifact_path: build/app/outputs/flutter-apk/app-release.apk
             artifact_ext: apk
           #           - os: macos-latest
-          #             platform: darwin
-          #             artifact_path: app/build/macos/Build/Products/Release/${APP_DIRNAME}.app
+          #             platform: macos
+          #             artifact_path: build/macos/Build/Products/Release/${APP_DIRNAME}.app
           #             artifact_ext: zip
           - os: windows-latest
             platform: windows
-            artifact_path: app\build\windows\x64\runner\Release
+            artifact_path: build/windows/x64/runner/Release
             artifact_ext: zip
 
     steps:
@@ -55,6 +49,8 @@ jobs:
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://dl.min.io/client/mc/release/windows-amd64/mc.exe" -OutFile "mc.exe"
+          # 将当前目录添加到PATH环境变量
+          echo "${{ github.workspace }}" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       # 配置 MinIO 客户端
       - name: Configure MinIO client
@@ -65,6 +61,13 @@ jobs:
           } else {
             mc alias set myminio ${{ env.MINIO_ENDPOINT }} ${{ env.MINIO_ACCESS_KEY }} ${{ env.MINIO_SECRET_KEY }}
           }
+
+      - name: test
+        shell: bash
+        run: |
+            mkdir -p test/t1/a/b/c
+            touch  test/t1/a/b/c/app.apk
+            #timeout 10 mc cp --recursive "test/t1/a/b/c/" "myminio/${MINIO_BUCKET}/release/vp/"
 
       # 从 MinIO 下载代码
       - name: Download code from MinIO
@@ -198,79 +201,10 @@ jobs:
           magick -version
       - name: Build app
         shell: bash
+        env:
+          ARTIFACT_PATH: "${{ matrix.artifact_path }}"
+          ARTIFACT_EXT: "${{ matrix.artifact_ext }}"
         run: |
           curl -qs "${{ secrets.API_ASSETS_URL }}/build.sh" -o ./base_app/.gitea/workflows/assets/build.sh
           chmod a+x ./base_app/.gitea/workflows/assets/build.sh
-          ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
-#       - name: Build app2
-#         shell: bash
-#         run: ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
-#       - name: Build app3
-#         shell: bash
-#         run: ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
-#       - name: Build app4
-#         shell: bash
-#         run: |
-#           APP_NAME=test APP_NAME_ZH=测试 APP_VERSION=1.1.1 APP_DOMAIN=google.com ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
-      # 非 Windows: 处理 artifact
-      - name: Prepare artifact (Unix/macOS)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          mkdir -p dist
-          OS_NAME=${{ matrix.platform }}
-          FILE_NAME="${APP_NAME}_${APP_DIGITAL_VERSION}.${{ matrix.artifact_ext }}"
-          if [ "${{ matrix.artifact_ext }}" = "zip" ]; then
-            cd "${{ matrix.artifact_path}}/.."
-            zip -r "../../../../../../dist/$FILE_NAME" "${APP_NAME_ZH}.app"
-          else
-            cp "${{ matrix.artifact_path }}" "dist/$FILE_NAME"
-          fi
-      - name: Inno Setup
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          mv ".\app\build\windows\x64\runner\Release\vp.exe" ".\app\build\windows\x64\runner\Release\${{ env.APP_NAME_ZH }}.exe"
-          ISCC.exe /DMyAppExeName="${{ env.APP_NAME_ZH }}.exe" /DMyAppVersion="${{ env.APP_VERSION }}" /DMyAppName="${{ env.APP_NAME_ZH }}" .\app\AssembleWinSetup.iss
-      - name: Get built EXE full path and save to EXE_FILE
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $exe = Get-ChildItem "${{ matrix.artifact_path }}\..\" -Filter *.exe | Select-Object -First 1
-          if (-not $exe) {
-            Write-Error "No .exe file found in the runner directory."
-            exit 1
-          }
-
-          $exePath = $exe.FullName
-          echo "EXE_FILE=$exePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-          Write-Host "Found EXE full path: $exePath"
-
-      # Windows: 处理 artifact
-      - name: Prepare artifact (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          mkdir -p dist
-          mkdir -p tmp
-
-          $ext = "${{ matrix.artifact_ext }}"
-          $fileName = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}_${{ matrix.platform }}.${ext}"
-          $newExe = "${{ env.APP_NAME }}_${{ env.APP_DIGITAL_VERSION }}.exe"
-          Copy-Item -Path "${{ env.EXE_FILE }}" -Destination ".\tmp\${newExe}"
-          Copy-Item -Path ".\app\assets\windows\*" -Destination ".\tmp\"
-          Compress-Archive -Path ".\tmp\*" -DestinationPath ".\dist\${fileName}" -Force
-      # 上传到 MinIO
-      - name: Upload to MinIO
-        shell: pwsh
-        run: |
-          if ($IsWindows) {
-            "${{ env.APP_DIGITAL_VERSION }}" > .\${{ env.APP_NAME }}_${{ matrix.platform }}_build_version
-            ./mc.exe cp --recursive ".\dist\" "myminio/${{ env.MINIO_BUCKET }}/release/vp/"
-            ./mc.exe cp "${{ env.APP_NAME }}_${{ matrix.platform }}_build_version" "myminio/${{ env.MINIO_BUCKET }}/release/"
-          } else {
-            echo "${{ env.APP_DIGITAL_VERSION }}" > ${{ env.APP_NAME }}_${{ matrix.platform }}_build_version
-            mc cp --recursive ./dist/ myminio/${{ env.MINIO_BUCKET }}/release/vp/
-            mc cp "${{ env.APP_NAME }}_${{ matrix.platform }}_build_version" myminio/${{ env.MINIO_BUCKET }}/release/
-          }
+          ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }} > /dev/null
