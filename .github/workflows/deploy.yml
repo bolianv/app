@@ -183,10 +183,8 @@ jobs:
         run: |
           $url = "https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-47-Q16-x64-static.exe"
           $installer = "$env:RUNNER_TEMP\\ImageMagick.exe"
-
           # 下载安装包
           Invoke-WebRequest -Uri $url -OutFile $installer
-
           # 静默安装
           Start-Process -FilePath $installer -ArgumentList '/VERYSILENT','/NORESTART','/MERGETASKS="assoc,installlegacyutils,addtopath"' -Wait
 
