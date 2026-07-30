@@ -15,6 +15,10 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      # 默认 fail-fast: true 会让一个平台失败时取消其他还在跑的平台。
+      # 之前 Windows 在 Install Inno Setup 秒挂，把正在编译的 apk 任务一起取消了
+      # （日志里表现为 "The operation was canceled"）。两个平台互不依赖，应各自跑完。
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -196,15 +200,21 @@ jobs:
           fi
           bash ./build_android.sh
 
+      # 原先从 https://jrsoftware.org/download.php/is.exe 下载安装包，但该地址返回的
+      # 已不是有效 exe，Start-Process 报 "The file or directory is corrupted and
+      # unreadable"。Windows runner 预装 Chocolatey，用它装更稳，也不依赖具体下载地址。
       - name: Install Inno Setup
         if: runner.os == 'Windows'
         run: |
           $ErrorActionPreference = "Stop"
-          $url = "https://jrsoftware.org/download.php/is.exe"
-          $output = "$env:TEMP\innosetup.exe"
-          Invoke-WebRequest -Uri $url -OutFile $output
-          Start-Process -Wait -FilePath $output -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"
+          choco install innosetup -y --no-progress
           echo "C:\Program Files (x86)\Inno Setup 6" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          # 只做存在性校验：ISCC.exe 无参数运行会以非 0 退出，不能拿来当冒烟测试
+          if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) {
+            Write-Error "ISCC.exe 未找到，choco 安装路径可能有变"
+            exit 1
+          }
+          Write-Host "Inno Setup 就绪"
 
       - name: Download Inno Setup Simplified Chinese Language File
         if: runner.os == 'Windows'
@@ -257,4 +267,6 @@ jobs:
           ARTIFACT_EXT: "${{ matrix.artifact_ext }}"
         run: |
           chmod a+x ./base_app/.gitea/workflows/assets/build.sh
-          ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }} > /dev/null
+          # 不再把 stdout 丢到 /dev/null：flutter build 与 minio_upload 都在这个脚本里，
+          # 丢掉输出会导致「包到底有没有上传成功」完全无从判断。
+          ./base_app/.gitea/workflows/assets/build.sh ${{ matrix.platform }}
