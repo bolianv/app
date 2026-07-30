@@ -126,6 +126,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.24
+          # mihomo 依赖树比原版 clash 大得多，冷下载会明显拖慢构建
+          cache-dependency-path: clash_flt2/fclash/ffi/go.sum
       - name: Compile libclash.dll
         if: runner.os == 'Windows'
         working-directory: clash_flt2/fclash
@@ -148,6 +150,29 @@ jobs:
           java-version: "17"
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+
+      # Android 的 libclash.so 同样需要从源码编译（内核为 metacubex/mihomo）。
+      # 此前这里没有编译步骤，APK 直接打包 jniLibs 里的预编译产物，
+      # 内核一旦更新就必须手工重编并提交二进制。
+      - name: Setup Go 1.24
+        if: matrix.platform == 'apk'
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24
+          cache-dependency-path: clash_flt2/fclash/ffi/go.sum
+      - name: Install Android NDK
+        if: matrix.platform == 'apk'
+        run: |
+          # r26d。ndk_bin.sh 优先读 ANDROID_NDK_HOME，读不到才回退探测 SDK 目录
+          echo "y" | sdkmanager --install "ndk;26.3.11579264"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/26.3.11579264" >> $GITHUB_ENV
+      - name: Compile libclash.so
+        if: matrix.platform == 'apk'
+        working-directory: clash_flt2/fclash
+        run: |
+          chmod a+x ./build_android.sh ./ndk_bin.sh
+          ./build_android.sh
+
       - name: Install Inno Setup
         if: runner.os == 'Windows'
         run: |
