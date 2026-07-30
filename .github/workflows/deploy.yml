@@ -29,7 +29,13 @@ jobs:
           #             platform: macos
           #             artifact_path: build/macos/Build/Products/Release/${APP_DIRNAME}.app
           #             artifact_ext: zip
-          - os: windows-latest
+          # 固定 windows-2022，不要用 windows-latest。
+          # windows-latest 现已指向 windows-2025，Flutter 3.24.5 在其上认不出
+          # Visual Studio，会回退到默认 generator "Visual Studio 16 2019"
+          # （见 flutter_tools 的 visual_studio.dart），CMake 随即报
+          # "could not find any instance of Visual Studio"。
+          # 长期方案是升级 Flutter，届时可再回到 latest。
+          - os: windows-2022
             platform: windows
             artifact_path: build/windows/x64/runner/Release
             artifact_ext: zip
