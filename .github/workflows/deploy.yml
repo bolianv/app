@@ -172,13 +172,29 @@ jobs:
         run: |
           # r26d。ndk_bin.sh 优先读 ANDROID_NDK_HOME，读不到才回退探测 SDK 目录
           echo "y" | sdkmanager --install "ndk;26.3.11579264"
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/26.3.11579264" >> $GITHUB_ENV
+          # setup-android 不保证同时导出 ANDROID_SDK_ROOT 和 ANDROID_HOME，两个都兜
+          SDK="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          echo "SDK 根目录: $SDK"
+          ls -la "$SDK/ndk/" || echo "  警告: $SDK/ndk 不存在"
+          echo "ANDROID_NDK_HOME=$SDK/ndk/26.3.11579264" >> $GITHUB_ENV
       - name: Compile libclash.so
         if: matrix.platform == 'apk'
         working-directory: clash_flt2/fclash
         run: |
-          chmod a+x ./build_android.sh ./ndk_bin.sh
-          ./build_android.sh
+          # 用 bash 显式执行，不依赖文件的执行位（git 里虽然是 100755，
+          # 但经 tar 打包/解压后不必保证；chmod 也没必要）。
+          # 先把环境和目录内容打出来：这一步若因 code.tar.gz 陈旧而缺文件，
+          # 光看 "No such file or directory" 无法判断是路径问题还是代码问题。
+          echo "PWD=$(pwd)"
+          echo "ANDROID_NDK_HOME=${ANDROID_NDK_HOME:-<未设置>}"
+          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-<未设置>}"
+          echo "ANDROID_HOME=${ANDROID_HOME:-<未设置>}"
+          ls -la
+          if [ ! -f ./build_android.sh ]; then
+            echo "::error::build_android.sh 不存在。code.tar.gz 可能是旧版本 —— 检查 Gitea deploy 的 Minio Deploy 是否成功上传。"
+            exit 1
+          fi
+          bash ./build_android.sh
 
       - name: Install Inno Setup
         if: runner.os == 'Windows'
