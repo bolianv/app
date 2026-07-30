@@ -223,9 +223,20 @@ jobs:
 
           Write-Host "Downloaded ChineseSimplified.isl to $langDir"
 
+      # 原先用 mfinelli/setup-imagemagick@v6 装 ImageMagick 7，但它写死的下载地址
+      # https://imagemagick.org/archive/binaries/magick 已经 404。
+      # ubuntu runner 本身预装 ImageMagick 6，build.sh 会探测 magick/convert，
+      # 两个版本都能跑，所以这里只确保命令存在即可。
       - name: Install ImageMagick
         if: runner.os != 'Windows'
-        uses: mfinelli/setup-imagemagick@v6
+        run: |
+          if command -v magick >/dev/null 2>&1 || command -v convert >/dev/null 2>&1; then
+            echo "已存在 ImageMagick:"
+          else
+            echo "未预装，通过 apt 安装"
+            sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick
+          fi
+          (magick -version || convert -version) 2>/dev/null | head -1
       - name: Install ImageMagick
         if: runner.os == 'Windows'
         run: |
