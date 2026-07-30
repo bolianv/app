@@ -40,9 +40,16 @@ jobs:
         run: |
           curl -qs "${{ secrets.API_ASSETS_URL }}/parse_env.js" -o parse_env.js
           node parse_env.js "${{ secrets.API_BUILD_URL }}"
+      # 原先用 yakubique/setup-minio-cli@v1，但同作者的 minio-upload action
+      # 因未跟随 dl.min.io 的 302 而下载到 141 字节的重定向页面，
+      # 报 "/minio-binaries//mc: line 1: can't open a"。这里不再依赖它。
       - name: Setup MinIO client
         if: runner.os != 'Windows'
-        uses: yakubique/setup-minio-cli@v1
+        run: |
+          curl -fsSLO https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          sudo mv mc /usr/local/bin/mc
+          mc --version
 
       # Windows: 下载 mc.exe
       - name: Download mc.exe for Windows
